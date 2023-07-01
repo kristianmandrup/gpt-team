@@ -15,3 +15,7 @@ export interface IAIAgent {
   init: () => Promise<IAIAgent>;
   run: () => Promise<void>;
 }
+
+export interface IAIChannelAgent extends IAIAgent {
+  close: () => Promise<void>;
+}

@@ -1,1 +1,1 @@
-export * from './lib/ai-agent';
+export * from './lib/ai-phases-agent';

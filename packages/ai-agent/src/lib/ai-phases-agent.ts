@@ -6,9 +6,9 @@ import * as amqp from 'amqplib';
 import { ConsumeMessage } from 'amqplib';
 import { IAIAgent, TeamProps } from './types';
 
-export class AIAgent implements IAIAgent {
+export class AIPhasesAgent implements IAIAgent {
   dbs?: DBs;
-  msgBus?: MessageBus;
+  msgBus: MessageBus;
   connection?: amqp.Connection;
   channel?: Channel;
   phases: IPhases;
@@ -19,10 +19,11 @@ export class AIAgent implements IAIAgent {
 
   protected terminationMsgs = ['COMPLETED', 'TERMINATED'];
 
-  constructor(opts: { phases: IPhases; team: TeamProps }) {
-    const { phases, team } = opts;
+  constructor(opts: { msgBus: MessageBus; phases: IPhases; team: TeamProps }) {
+    const { phases, team, msgBus } = opts;
     this.phases = phases;
     this.team = team;
+    this.msgBus = msgBus;
   }
 
   setRunner(runner: IAiAndUserRunner) {
