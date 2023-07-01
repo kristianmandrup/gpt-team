@@ -1,3 +1,7 @@
+import { OnMessage } from '@gpt-team/channel';
+import { Subject } from './subject';
+import { IPhase, IPhaseTask } from '@gpt-team/phases';
+
 export type TeamProps = {
   name: string;
 };
@@ -11,11 +15,27 @@ export type ProcessPhasesOps = {
 
 export interface IAIAgent {
   team: TeamProps;
-
   init: () => Promise<IAIAgent>;
   run: () => Promise<void>;
 }
 
+export interface IAIMsgAgent extends IAIAgent {
+  update(subject: Subject): void;
+}
+
 export interface IAIChannelAgent extends IAIAgent {
   close: () => Promise<void>;
+}
+
+export interface IAIMsgBusAgent extends IAIChannelAgent {
+  getSubscriptions(): Promise<string[]>;
+  processQueues(): Promise<void>;
+  consumeQueues(onMessage: OnMessage): Promise<void>;
+}
+
+export interface IAIPhasesAgent extends IAIAgent {
+  nextPhase: () => Promise<IPhase | undefined>;
+  nextTask: () => Promise<IPhaseTask | undefined>;
+  runPhases(): Promise<void>;
+  runPhase(): Promise<void>;
 }

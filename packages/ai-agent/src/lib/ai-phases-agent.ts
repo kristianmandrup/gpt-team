@@ -4,9 +4,9 @@ import type { IAiAndUserRunner } from '@gpt-team/ai';
 import type { IPhases, IPhase, IPhaseTask } from '@gpt-team/phases';
 import * as amqp from 'amqplib';
 import { ConsumeMessage } from 'amqplib';
-import { IAIAgent, TeamProps } from './types';
+import { IAIPhasesAgent, TeamProps } from './types';
 
-export class AIPhasesAgent implements IAIAgent {
+export class AIPhasesAgent implements IAIPhasesAgent {
   dbs?: DBs;
   msgBus: MessageBus;
   connection?: amqp.Connection;

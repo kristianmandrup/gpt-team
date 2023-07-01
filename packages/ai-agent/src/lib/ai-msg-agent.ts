@@ -1,7 +1,7 @@
 import { Subject } from './subject';
-import { IAIAgent, TeamProps } from './types';
+import { IAIMsgAgent, TeamProps } from './types';
 
-export class AIMsgAgent implements IAIAgent {
+export class AIMsgAgent implements IAIMsgAgent {
   team: TeamProps;
   subject: Subject;
 
