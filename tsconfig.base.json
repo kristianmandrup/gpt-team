@@ -14,7 +14,15 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@gpt-team/ai": ["packages/ai/src/index.ts"],
+      "@gpt-team/ai-agent": ["packages/ai-agent/src/index.ts"],
+      "@gpt-team/channel": ["packages/channel/src/index.ts"],
+      "@gpt-team/file-writer-agent": [
+        "packages/file-writer-agent/src/index.ts"
+      ],
+      "@gpt-team/phases": ["packages/phases/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }
