@@ -1,7 +1,9 @@
-import { aiAgent } from './ai-agent';
+import { AIAgent } from './ai-agent';
 
 describe('aiAgent', () => {
+  const agent = new AIAgent();
+
   it('should work', () => {
-    expect(aiAgent()).toEqual('ai-agent');
+    expect(agent).toBeDefined();
   });
 });

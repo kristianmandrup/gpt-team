@@ -1,0 +1,13 @@
+Mark each deliverable file type as either `PAGE` or `COMPONENT`
+
+Mark each file output with DELIVERABLE in brackets as shown below to make it clear it is a final output to be stored.
+
+File syntax:
+
+[-DELIVERABLE-]
+
+type: [deliverable type here]
+
+```file.ts/html/css
+[ADD YOUR CODE HERE]
+```

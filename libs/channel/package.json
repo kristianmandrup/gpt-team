@@ -1,0 +1,15 @@
+{
+    "name": "@gpt-team/channel",
+    "private": true,
+    "sideEffects": false,
+    "main": "dist/index.js",
+    "scripts": {
+      "build": "rm -rf dist && tsc",
+      "install": "pnpm install"
+    },
+    "dependencies": {
+      "amqplib": "^0.10.3",
+      "@gpt-team/ai": "workspace:*",
+      "@gpt-team/phases": "workspace:*"
+    }
+  }

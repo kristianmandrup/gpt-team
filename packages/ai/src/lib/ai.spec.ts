@@ -1,7 +1,9 @@
-import { ai } from './ai';
+import { AIAdapter } from './ai';
 
 describe('ai', () => {
+  const ai = new AIAdapter({});
+
   it('should work', () => {
-    expect(ai()).toEqual('ai');
+    expect(ai).toBeDefined();
   });
 });

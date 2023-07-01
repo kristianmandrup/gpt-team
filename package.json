@@ -5,6 +5,8 @@
   "scripts": {},
   "private": true,
   "dependencies": {
+    "amqplib": "^0.10.3",
+    "openai": "^4.0.0-beta.2",
     "tslib": "^2.3.0"
   },
   "devDependencies": {
@@ -13,6 +15,7 @@
     "@nx/js": "16.4.2",
     "@nx/linter": "16.4.2",
     "@nx/workspace": "16.4.2",
+    "@types/amqplib": "^0.10.1",
     "@types/jest": "^29.4.0",
     "@types/node": "18.7.1",
     "@typescript-eslint/eslint-plugin": "^5.58.0",

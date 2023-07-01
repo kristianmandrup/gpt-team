@@ -1,0 +1,4 @@
+
+> @gpt-team/db@ build /Users/kristian/repos/personal/ai-projects/gpt-turbo-team/libs/db
+> rm -rf dist && tsc
+
