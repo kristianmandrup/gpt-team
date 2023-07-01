@@ -10,7 +10,7 @@ import { NextOpts } from './types';
 import { fsystem, fuser } from '../question';
 
 export const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env['OPENAI_API_KEY'],
 });
 
 export type StartParams = { system: string[]; user: string[] };
@@ -42,7 +42,6 @@ export class AIAdapter {
   public async next({
     messages,
     prompt,
-    output,
   }: NextOpts): Promise<ChatCompletionRequestMessage[]> {
     // TODO: use output if present
     if (prompt) {
@@ -51,7 +50,7 @@ export class AIAdapter {
     }
     const response = await this.aiResponse(messages);
 
-    let data: CreateChatCompletionResponse = response.data;
+    const data: CreateChatCompletionResponse = response.data;
     const chat = this.parseResponses(data);
     const assistantMessage = this.assistantRequest(chat);
     messages.push(assistantMessage);
@@ -63,7 +62,7 @@ export class AIAdapter {
   ): CreateChatCompletionRequest {
     return {
       messages,
-      model: this.opts.model || 'gpt-3.5-turbo',
+      model: this.opts['model'] || 'gpt-3.5-turbo',
       ...this.opts,
     };
   }

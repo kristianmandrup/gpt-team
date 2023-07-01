@@ -1,37 +1,28 @@
-import { DBs } from '@gpt-team/db';
-import { createConsumer, MessageBus } from '@gpt-team/channel';
+import { DBs } from '@gpt-team/agent-storage';
+import { Channel, createConsumer, MessageBus } from '@gpt-team/channel';
 import type { IAiAndUserRunner } from '@gpt-team/ai';
 import type { IPhases, IPhase, IPhaseTask } from '@gpt-team/phases';
 import * as amqp from 'amqplib';
 import { ConsumeMessage } from 'amqplib';
+import { IAIAgent, TeamProps } from './types';
 
-export type TeamProps = {
-  name: string;
-};
-
-export type ProcessPhasesOps = {
-  basePath: string;
-  createDbs: any;
-  mqUrl: string;
-  team: TeamProps;
-};
-
-export class AIAgent {
-  dbs: DBs;
+export class AIAgent implements IAIAgent {
+  dbs?: DBs;
   msgBus?: MessageBus;
-  connection: amqp.Connection;
-  channel: amqp.Channel;
+  connection?: amqp.Connection;
+  channel?: Channel;
   phases: IPhases;
-  phase: IPhase;
-  task: IPhaseTask;
-  team?: TeamProps;
-  runner: IAiAndUserRunner;
+  phase?: IPhase;
+  task?: IPhaseTask;
+  team: TeamProps;
+  runner?: IAiAndUserRunner;
 
   protected terminationMsgs = ['COMPLETED', 'TERMINATED'];
 
-  constructor(opts: { phases?: IPhases } = {}) {
-    const { phases } = opts;
+  constructor(opts: { phases: IPhases; team: TeamProps }) {
+    const { phases, team } = opts;
     this.phases = phases;
+    this.team = team;
   }
 
   setRunner(runner: IAiAndUserRunner) {
@@ -50,12 +41,13 @@ export class AIAgent {
   }
 
   get rawChannel() {
-    return this.channel.getRawChannel();
+    return this.channel?.getRawChannel();
   }
 
   async init() {
-    this.connection = await this.msgBus.connect();
-    this.channel = await this.msgBus.getChannel();
+    this.connection = await this.msgBus?.connect();
+    this.channel = await this.msgBus?.getChannel();
+    return this;
   }
 
   async start(phases: IPhases) {
@@ -74,13 +66,17 @@ export class AIAgent {
   }
 
   async getConfig() {
-    return await this.task.getConfig();
+    return this.task?.getConfig ? await this.task.getConfig() : {};
   }
 
   async getSubscriptions() {
     const config = await this.getConfig();
     const { subscribe } = config.channels || {};
     return subscribe;
+  }
+
+  async run() {
+    await this.runPhases();
   }
 
   async runPhases() {
@@ -96,23 +92,26 @@ export class AIAgent {
   }
 
   async verifyQueue(queueName: string) {
-    await this.rawChannel.assertQueue(queueName);
+    await this.rawChannel?.assertQueue(queueName);
   }
 
   async runPhase() {
+    if (!this.phase) {
+      throw new Error(`No phase set`);
+    }
     try {
       await this.nextTask();
-      if (this.phase.isDone()) {
+      if (this.phase?.isDone()) {
         await this.nextPhase();
       }
       const QueueNamesToSubscribeTo = await this.getSubscriptions();
       const { channel, task } = this;
       // from config.yaml in task folder
-      for (var queueName of QueueNamesToSubscribeTo) {
+      for (const queueName of QueueNamesToSubscribeTo) {
         const consume = this.createConsumer({ channel, task });
         await this.verifyQueue(queueName);
         // create subscription
-        this.channel.consume(queueName, consume);
+        this.channel?.consume(queueName, consume);
       }
     } catch (error) {
       console.error('Error occurred:', error);
@@ -131,8 +130,10 @@ export class AIAgent {
   }
 
   async stopWhenDone() {
-    this.channel.consume('status', async (cmsg: ConsumeMessage) => {
-      const body = await this.channel.parseMsg(cmsg);
+    if (!this.channel) return;
+    this.channel.consume('status', async (cmsg: ConsumeMessage | null) => {
+      if (!cmsg) return;
+      const body = await this.channel?.parseMsg(cmsg);
 
       if (this.isTeamDone({ body })) {
         this.phases.setDone();
@@ -141,7 +142,7 @@ export class AIAgent {
   }
 
   async close() {
-    await this.rawChannel.close();
-    await this.connection.close();
+    this.rawChannel && (await this.rawChannel.close());
+    this.connection && (await this.connection.close());
   }
 }

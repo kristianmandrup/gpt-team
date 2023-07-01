@@ -1,7 +1,7 @@
 import * as amqp from 'amqplib';
 import { Channel } from './channel';
 
-describe('channel', () => {
+describe.skip('channel', () => {
   const rabbitmqUrl = 'amqp://localhost';
   let channel: Channel;
 

@@ -15,13 +15,16 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@gpt-team/agent-storage": ["packages/agent-storage/src/index.ts"],
       "@gpt-team/ai": ["packages/ai/src/index.ts"],
       "@gpt-team/ai-agent": ["packages/ai-agent/src/index.ts"],
       "@gpt-team/channel": ["packages/channel/src/index.ts"],
       "@gpt-team/file-writer-agent": [
         "packages/file-writer-agent/src/index.ts"
       ],
-      "@gpt-team/phases": ["packages/phases/src/index.ts"]
+      "@gpt-team/phases": ["packages/phases/src/index.ts"],
+      "@gpt-team/team-server": ["packages/team-server/src/index.ts"],
+      "@gpt-team/ui-agent": ["packages/ui-agent/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

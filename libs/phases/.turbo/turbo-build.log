@@ -1,9 +1,0 @@
-
-> @gpt-team/phases@ build /Users/kristian/repos/personal/ai-projects/gpt-turbo-team/libs/phases
-> rm -rf dist && tsc
-
-src/file-phases.ts(4,23): error TS7016: Could not find a declaration file for module 'js-yaml'. '/Users/kristian/repos/personal/ai-projects/gpt-turbo-team/node_modules/.pnpm/js-yaml@4.1.0/node_modules/js-yaml/index.js' implicitly has an 'any' type.
-  Try `npm i --save-dev @types/js-yaml` if it exists or add a new declaration (.d.ts) file containing `declare module 'js-yaml';`
-src/yaml-phases.ts(3,23): error TS7016: Could not find a declaration file for module 'js-yaml'. '/Users/kristian/repos/personal/ai-projects/gpt-turbo-team/node_modules/.pnpm/js-yaml@4.1.0/node_modules/js-yaml/index.js' implicitly has an 'any' type.
-  Try `npm i --save-dev @types/js-yaml` if it exists or add a new declaration (.d.ts) file containing `declare module 'js-yaml';`
- ELIFECYCLE  Command failed with exit code 2.
