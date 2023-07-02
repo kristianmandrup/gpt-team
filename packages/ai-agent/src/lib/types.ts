@@ -1,5 +1,5 @@
 import { OnMessage } from '@gpt-team/channel';
-import { Subject } from './subject';
+import { ISubject } from './subject';
 import { IPhase, IPhaseTask } from '@gpt-team/phases';
 
 export type TeamProps = {
@@ -20,7 +20,7 @@ export interface IAIAgent {
 }
 
 export interface IAIMsgAgent extends IAIAgent {
-  update(subject: Subject): void;
+  update(subject: ISubject): void;
 }
 
 export interface IAIChannelAgent extends IAIAgent {

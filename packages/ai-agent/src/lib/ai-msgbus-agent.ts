@@ -3,6 +3,8 @@ import * as amqp from 'amqplib';
 import { ConsumeMessage } from 'amqplib';
 import { IAIAgent, TeamProps } from './types';
 
+export type AIMsgBusAgentParams = { msgBus: MessageBus; team: TeamProps };
+
 export class AIMsgBusAgent implements IAIAgent {
   msgBus: MessageBus;
   connection?: amqp.Connection;
@@ -11,7 +13,7 @@ export class AIMsgBusAgent implements IAIAgent {
 
   protected terminationMsgs = ['COMPLETED', 'TERMINATED'];
 
-  constructor(opts: { msgBus: MessageBus; team: TeamProps }) {
+  constructor(opts: AIMsgBusAgentParams) {
     const { team, msgBus } = opts;
     this.team = team;
     this.msgBus = msgBus;
@@ -57,10 +59,10 @@ export class AIMsgBusAgent implements IAIAgent {
   }
 
   async processQueues() {
-    await this.consumeQueues(this.onMessage);
+    await this.consumeQueues(this.createOnMessage());
   }
 
-  onMessage(): OnMessage {
+  createOnMessage(opts: any = {}): OnMessage {
     return (msg: amqp.ConsumeMessage | null) => {
       console.log({ received: msg?.content });
     };

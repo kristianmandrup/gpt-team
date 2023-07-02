@@ -1,59 +1,89 @@
 import * as amqp from 'amqplib';
 import { parseChat, filesToFileSystem } from '@gpt-team/ai';
-import { queueNames, createSend } from '@gpt-team/channel';
-import { createDbs } from './dbs';
+import {
+  queueNames,
+  createSend,
+  OnMessage,
+  MsgPayload,
+} from '@gpt-team/channel';
 import * as path from 'path';
-import type { IAIAgent } from '@gpt-team/ai-agent';
+import {
+  AIMsgBusAgent,
+  AIMsgBusAgentParams,
+  type IAIMsgBusAgent,
+} from '@gpt-team/ai-agent';
 
 // Function to process project descriptions and generate use cases
+export type SendMsgFn = (payload: MsgPayload) => Promise<void>;
 
-export class FileWriterAgent implements IAIAgent {
-  async run() {
-    // Db
-    const basePath = path.join(process.cwd(), 'agents', 'api-agent', 'db');
-    const dbs = createDbs(basePath);
+export class FileWriterAgent extends AIMsgBusAgent implements IAIMsgBusAgent {
+  basePath: string = process.cwd();
+  sendStatusMsg?: SendMsgFn;
+  sendDeliverableMsg?: SendMsgFn;
 
-    // RabbitMQ connection URL
-    const rabbitmqUrl = 'amqp://localhost';
+  constructor(opts: AIMsgBusAgentParams) {
+    super(opts);
+    this.basePath = path.join(process.cwd(), 'agents', 'api-agent', 'db');
+  }
 
-    try {
-      // Connect to RabbitMQ
-      const connection = await amqp.connect(rabbitmqUrl);
-      const channel = await connection.createChannel();
+  get workspace(): any {
+    return {};
+  }
 
-      // Ensure the queue exists
-      await channel.assertQueue(queueNames.deliverables);
+  override createOnMessage({ channel }: { channel: amqp.Channel }): OnMessage {
+    return async (message: amqp.ConsumeMessage | null) => {
+      if (!message) return;
+      const body = JSON.parse(message.content.toString());
 
-      const sendMsg = createSend(channel, queueNames.status, 'fs-writer');
+      // Use the message to extract file info and write to file system
+      const text = body.message;
 
-      console.log('FS write Agent is waiting for deliverables...');
+      const files = parseChat(text);
+      filesToFileSystem(this.workspace, files, body.meta);
+      const filePaths = {
+        fileX: 'x.y',
+      };
 
-      // Consume messages from the queue
-      channel.consume(queueNames.all, async (message: any) => {
-        const body = JSON.parse(message.content.toString());
+      const deliverableMsg = JSON.stringify(filePaths);
+      const statusMsg = 'files written to fs';
+      const meta = {
+        files,
+      };
+      const { sendDeliverableMsg, sendStatusMsg } = this;
 
-        // Use the message to extract file info and write to file system
+      sendDeliverableMsg &&
+        (await sendDeliverableMsg({ messages: [deliverableMsg], meta }));
 
-        const text = body.message;
+      // send output returned from step to UI channel
+      sendStatusMsg && (await sendStatusMsg({ messages: [statusMsg], meta }));
+      // Acknowledge the message to remove it from the queue
+      channel.ack(message);
+    };
+  }
 
-        const files = parseChat(text);
-        filesToFileSystem(dbs.workspace, files, body.meta);
+  async configureSendDeliverables() {
+    await this.verifyQueue(queueNames.deliverables);
 
-        const msg = 'files written to fs';
-        const meta = {
-          files,
-        };
-        // send output returned from step to UI channel
-        await sendMsg({ messages: [msg], meta });
-        // Acknowledge the message to remove it from the queue
-        channel.ack(message);
-      });
+    this.sendStatusMsg = createSend(
+      this.channel,
+      queueNames.status,
+      'fs-writer'
+    ).bind(this);
 
-      // Close the RabbitMQ connection
-      await channel.close();
-      await connection.close();
-    } catch (error) {
-      console.error('Error occurred:', error);
-    }
+    // send status about file written
+    this.sendDeliverableMsg = createSend(
+      this.channel,
+      queueNames.deliverables,
+      'fs-writer'
+    ).bind(this);
+  }
+
+  override async processQueues() {
+    this.configureSendDeliverables();
+    const channel = this.channel?.getRawChannel();
+    if (!channel) return;
+    const onMessage = this.createOnMessage({ channel }).bind(this);
+    // consume messages sent to all
+    channel.consume(queueNames.all, onMessage);
   }
 }

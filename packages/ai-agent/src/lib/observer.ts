@@ -1,9 +1,9 @@
-import { Subject } from './subject';
+import { ISubject } from './subject';
 
 /**
  * The Observer interface declares the update method, used by subjects.
  */
-export interface Observer {
+export interface IObserver {
   // Receive update from subject.
-  update(subject: Subject): void;
+  update(subject: ISubject): void;
 }

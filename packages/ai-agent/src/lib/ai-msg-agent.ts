@@ -1,13 +1,14 @@
-import { Subject } from './subject';
+import { MessengerSubject, ISubject } from './subject';
 import { IAIMsgAgent, TeamProps } from './types';
+import { IObserver } from './observer';
 
-export class AIMsgAgent implements IAIMsgAgent {
+export class AIMsgAgent implements IAIMsgAgent, IObserver {
   team: TeamProps;
-  subject: Subject;
+  subject: ISubject;
 
   protected terminationMsgs = ['COMPLETED', 'TERMINATED'];
 
-  constructor(opts: { team: TeamProps; subject: Subject }) {
+  constructor(opts: { team: TeamProps; subject: ISubject }) {
     const { team, subject } = opts;
     this.team = team;
     this.subject = subject;
@@ -37,8 +38,8 @@ export class AIMsgAgent implements IAIMsgAgent {
     return false;
   }
 
-  update(subject: Subject): void {
-    this.onMessage(subject.lastMessage);
+  update(subject: ISubject): void {
+    if (subject instanceof MessengerSubject) this.onMessage(subject.message);
   }
 
   async processMessages() {
