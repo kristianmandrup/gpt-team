@@ -18,8 +18,8 @@ export type SendMsgFn = (payload: MsgPayload) => Promise<void>;
 
 export class FileWriterAgent extends AIMsgBusAgent implements IAIMsgBusAgent {
   basePath: string = process.cwd();
-  sendStatusMsg?: SendMsgFn;
-  sendDeliverableMsg?: SendMsgFn;
+  send: Record<string, SendMsgFn> = {};
+  sendQueues = ['deliverables', 'status'];
 
   constructor(opts: AIMsgBusAgentParams) {
     super(opts);
@@ -30,62 +30,61 @@ export class FileWriterAgent extends AIMsgBusAgent implements IAIMsgBusAgent {
     return {};
   }
 
+  parseMsg(message: amqp.ConsumeMessage) {
+    const body = JSON.parse(message.content.toString());
+    // Use the message to extract file info and write to file system
+    return { content: body.message, body };
+  }
+
   override createOnMessage(): OnMessage {
     return async (message: amqp.ConsumeMessage | null) => {
       if (!message) return;
-      const body = JSON.parse(message.content.toString());
-
-      // Use the message to extract file info and write to file system
-      const text = body.message;
-
-      const files = parseChat(text);
-      filesToFileSystem(this.workspace, files, body.meta);
-      const filePaths = {
-        fileX: 'x.y',
-      };
-
-      const deliverableMsg = JSON.stringify(filePaths);
-      const statusMsg = 'files written to fs';
+      const { content, body } = this.parseMsg(message);
+      const files = parseChat(content);
+      const fileSys = filesToFileSystem(this.workspace, files, body.meta);
       const meta = {
         files,
       };
-      const { sendDeliverableMsg, sendStatusMsg } = this;
-
-      sendDeliverableMsg &&
-        (await sendDeliverableMsg({ messages: [deliverableMsg], meta }));
+      this.sendMsg('deliverable', fileSys, meta);
+      this.sendMsg('status', 'files written to fs', meta);
 
       // send output returned from step to UI channel
-      sendStatusMsg && (await sendStatusMsg({ messages: [statusMsg], meta }));
-      const channel = this.channel?.getRawChannel();
-
-      // Acknowledge the message to remove it from the queue
-      channel && channel.ack(message);
+      this.acknowledgeMessage(message);
     };
   }
 
-  async configureSendDeliverables() {
-    await this.verifyQueue(queueNames.deliverables);
+  acknowledgeMessage(message: amqp.ConsumeMessage) {
+    const channel = this.channel?.getRawChannel();
+    // Acknowledge the message to remove it from the queue
+    channel && channel.ack(message);
+  }
 
-    this.sendStatusMsg = createSend(
-      this.channel,
-      queueNames.status,
-      'fs-writer'
-    ).bind(this);
+  async sendMsg(name: string, payload: any, meta: any) {
+    const sendMsg = this.send[name];
+    const msg = JSON.stringify(payload);
+    sendMsg && (await sendMsg({ messages: [msg], meta }));
+  }
 
-    // send status about file written
-    this.sendDeliverableMsg = createSend(
-      this.channel,
-      queueNames.deliverables,
-      'fs-writer'
-    ).bind(this);
+  createPhaseSender(name: string) {
+    return createSend(this.channel, queueNames[name], this.team.name).bind(
+      this
+    );
+  }
+
+  async configureSendMethods() {
+    this.sendQueues.forEach(async (name) => {
+      await this.verifyPhaseQueue(name);
+      const sender = this.createPhaseSender('status');
+      this.send[name] = sender;
+    });
   }
 
   override async processQueues() {
-    this.configureSendDeliverables();
+    this.configureSendMethods();
     const channel = this.channel?.getRawChannel();
     if (!channel) return;
     const onMessage = this.createOnMessage().bind(this);
     // consume messages sent to all
-    channel.consume(queueNames.all, onMessage);
+    channel.consume(queueNames['all'], onMessage);
   }
 }

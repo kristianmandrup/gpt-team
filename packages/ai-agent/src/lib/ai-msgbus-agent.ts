@@ -1,4 +1,4 @@
-import { Channel, MessageBus, OnMessage } from '@gpt-team/channel';
+import { Channel, MessageBus, OnMessage, queueNames } from '@gpt-team/channel';
 import * as amqp from 'amqplib';
 import { ConsumeMessage } from 'amqplib';
 import { IAIAgent, TeamProps } from './types';
@@ -66,6 +66,10 @@ export class AIMsgBusAgent implements IAIAgent {
     return (msg: amqp.ConsumeMessage | null) => {
       console.log({ received: msg?.content });
     };
+  }
+
+  async verifyPhaseQueue(name: string) {
+    await this.verifyQueue(queueNames[name]);
   }
 
   async verifyQueue(queueName: string) {
