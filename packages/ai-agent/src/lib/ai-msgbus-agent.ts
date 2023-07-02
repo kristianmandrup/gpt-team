@@ -1,8 +1,16 @@
-import { Channel, MessageBus, OnMessage, queueNames } from '@gpt-team/channel';
+import {
+  Channel,
+  MessageBus,
+  OnMessage,
+  createSend,
+  queueNames,
+  MsgPayload,
+} from '@gpt-team/channel';
 import * as amqp from 'amqplib';
 import { ConsumeMessage } from 'amqplib';
 import { IAIAgent, TeamProps } from './types';
 
+export type SendMsgFn = (payload: MsgPayload) => Promise<void>;
 export type AIMsgBusAgentParams = { msgBus: MessageBus; team: TeamProps };
 
 export class AIMsgBusAgent implements IAIAgent {
@@ -10,8 +18,13 @@ export class AIMsgBusAgent implements IAIAgent {
   connection?: amqp.Connection;
   channel?: Channel;
   team: TeamProps;
+  send: Record<string, SendMsgFn> = {};
 
   protected terminationMsgs = ['COMPLETED', 'TERMINATED'];
+
+  getSendQueues(): string[] {
+    return [];
+  }
 
   constructor(opts: AIMsgBusAgentParams) {
     const { team, msgBus } = opts;
@@ -42,6 +55,18 @@ export class AIMsgBusAgent implements IAIAgent {
     return [];
   }
 
+  createSender(name: string) {
+    return createSend(this.channel, name, this.team.name).bind(this);
+  }
+
+  async configureSendMethods() {
+    this.getSendQueues().forEach(async (name) => {
+      await this.verifyQueue(name);
+      const sender = this.createSender(name);
+      this.send[name] = sender;
+    });
+  }
+
   async run() {
     try {
       await this.init();
@@ -66,10 +91,6 @@ export class AIMsgBusAgent implements IAIAgent {
     return (msg: amqp.ConsumeMessage | null) => {
       console.log({ received: msg?.content });
     };
-  }
-
-  async verifyPhaseQueue(name: string) {
-    await this.verifyQueue(queueNames[name]);
   }
 
   async verifyQueue(queueName: string) {

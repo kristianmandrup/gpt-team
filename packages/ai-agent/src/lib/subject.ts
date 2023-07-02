@@ -72,6 +72,7 @@ export class MessengerSubject implements ISubject {
    * happen (or after it).
    */
   public sendMsg(msg: string): void {
+    this.message = msg;
     this.messages.push(msg);
     console.log(`New messages added to state: ${msg}`);
     this.notify();

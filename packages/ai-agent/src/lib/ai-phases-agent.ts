@@ -1,29 +1,30 @@
 import { DBs } from '@gpt-team/agent-storage';
-import { Channel, createConsumer, MessageBus } from '@gpt-team/channel';
+import {
+  Channel,
+  createConsumer,
+  createSend,
+  MessageBus,
+  OnMessage,
+  queueNames,
+} from '@gpt-team/channel';
 import type { IAiAndUserRunner } from '@gpt-team/ai';
 import type { IPhases, IPhase, IPhaseTask } from '@gpt-team/phases';
 import * as amqp from 'amqplib';
 import { ConsumeMessage } from 'amqplib';
 import { IAIPhasesAgent, TeamProps } from './types';
+import { AIMsgBusAgent } from './ai-msgbus-agent';
 
-export class AIPhasesAgent implements IAIPhasesAgent {
+export class AIPhasesAgent extends AIMsgBusAgent implements IAIPhasesAgent {
   dbs?: DBs;
-  msgBus: MessageBus;
-  connection?: amqp.Connection;
-  channel?: Channel;
   phases: IPhases;
   phase?: IPhase;
   task?: IPhaseTask;
-  team: TeamProps;
   runner?: IAiAndUserRunner;
 
-  protected terminationMsgs = ['COMPLETED', 'TERMINATED'];
-
   constructor(opts: { msgBus: MessageBus; phases: IPhases; team: TeamProps }) {
-    const { phases, team, msgBus } = opts;
+    super(opts);
+    const { phases } = opts;
     this.phases = phases;
-    this.team = team;
-    this.msgBus = msgBus;
   }
 
   setRunner(runner: IAiAndUserRunner) {
@@ -36,23 +37,13 @@ export class AIPhasesAgent implements IAIPhasesAgent {
     return this;
   }
 
-  setMessageBus(msgBus: MessageBus) {
-    this.msgBus = msgBus;
-    return this;
-  }
-
-  get rawChannel() {
-    return this.channel?.getRawChannel();
-  }
-
-  async init() {
+  override async init() {
     this.connection = await this.msgBus?.connect();
     this.channel = await this.msgBus?.getChannel();
     return this;
   }
 
-  async start(phases: IPhases) {
-    this.phases = phases;
+  override async start() {
     console.log('Agent is waiting for messages...');
   }
 
@@ -70,13 +61,13 @@ export class AIPhasesAgent implements IAIPhasesAgent {
     return this.task?.getConfig ? await this.task.getConfig() : {};
   }
 
-  async getSubscriptions() {
+  override async getSubscriptions() {
     const config = await this.getConfig();
     const { subscribe } = config.channels || {};
     return subscribe;
   }
 
-  async run() {
+  override async run() {
     await this.runPhases();
   }
 
@@ -92,8 +83,12 @@ export class AIPhasesAgent implements IAIPhasesAgent {
     }
   }
 
-  async verifyQueue(queueName: string) {
-    await this.rawChannel?.assertQueue(queueName);
+  async verifyPhaseQueue(name: string) {
+    await this.verifyQueue(queueNames[name]);
+  }
+
+  createPhaseSender(name: string) {
+    return this.createSender(queueNames[name]);
   }
 
   async runPhase() {
@@ -105,17 +100,20 @@ export class AIPhasesAgent implements IAIPhasesAgent {
       if (this.phase?.isDone()) {
         await this.nextPhase();
       }
-      const QueueNamesToSubscribeTo = await this.getSubscriptions();
-      const { channel, task } = this;
-      // from config.yaml in task folder
-      for (const queueName of QueueNamesToSubscribeTo) {
-        const consume = this.createConsumer({ channel, task });
-        await this.verifyQueue(queueName);
-        // create subscription
-        this.channel?.consume(queueName, consume);
-      }
     } catch (error) {
       console.error('Error occurred:', error);
+    }
+  }
+
+  override async consumeQueues(onMessage: OnMessage) {
+    const QueueNamesToSubscribeTo = await this.getSubscriptions();
+    const { channel, task } = this;
+    // from config.yaml in task folder
+    for (const queueName of QueueNamesToSubscribeTo) {
+      const consume = this.createConsumer({ channel, task });
+      await this.verifyQueue(queueName);
+      // create subscription
+      this.channel?.consume(queueName, consume);
     }
   }
 
@@ -123,14 +121,7 @@ export class AIPhasesAgent implements IAIPhasesAgent {
     return createConsumer({ channel, task });
   }
 
-  protected isTeamDone({ body }: any) {
-    return (
-      this.terminationMsgs.includes(body.message) &&
-      body.sender == this.team.name
-    );
-  }
-
-  async stopWhenDone() {
+  override async stopWhenDone() {
     if (!this.channel) return;
     this.channel.consume('status', async (cmsg: ConsumeMessage | null) => {
       if (!cmsg) return;
@@ -140,10 +131,5 @@ export class AIPhasesAgent implements IAIPhasesAgent {
         this.phases.setDone();
       }
     });
-  }
-
-  async close() {
-    this.rawChannel && (await this.rawChannel.close());
-    this.connection && (await this.connection.close());
   }
 }

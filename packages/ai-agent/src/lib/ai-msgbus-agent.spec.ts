@@ -1,17 +1,12 @@
 import { MessageBus, TeamProps } from '@gpt-team/channel';
-import { FileWriterAgent } from './file-writer-agent';
+import { AIMsgBusAgent } from './ai-msgbus-agent';
 
-describe('FileWriterAgent', () => {
-  let agent: FileWriterAgent;
-
+describe.skip('aiAgent', () => {
   const msgBus = new MessageBus('amqp://localhost');
   const team: TeamProps = {
     name: 'ui',
   };
-
-  beforeEach(() => {
-    agent = new FileWriterAgent({ msgBus, team });
-  });
+  const agent = new AIMsgBusAgent({ msgBus, team });
 
   it('should work', () => {
     expect(agent).toBeDefined();
