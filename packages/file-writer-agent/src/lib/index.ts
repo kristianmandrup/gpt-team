@@ -30,7 +30,7 @@ export class FileWriterAgent extends AIMsgBusAgent implements IAIMsgBusAgent {
     return {};
   }
 
-  override createOnMessage({ channel }: { channel: amqp.Channel }): OnMessage {
+  override createOnMessage(): OnMessage {
     return async (message: amqp.ConsumeMessage | null) => {
       if (!message) return;
       const body = JSON.parse(message.content.toString());
@@ -56,8 +56,10 @@ export class FileWriterAgent extends AIMsgBusAgent implements IAIMsgBusAgent {
 
       // send output returned from step to UI channel
       sendStatusMsg && (await sendStatusMsg({ messages: [statusMsg], meta }));
+      const channel = this.channel?.getRawChannel();
+
       // Acknowledge the message to remove it from the queue
-      channel.ack(message);
+      channel && channel.ack(message);
     };
   }
 
@@ -82,7 +84,7 @@ export class FileWriterAgent extends AIMsgBusAgent implements IAIMsgBusAgent {
     this.configureSendDeliverables();
     const channel = this.channel?.getRawChannel();
     if (!channel) return;
-    const onMessage = this.createOnMessage({ channel }).bind(this);
+    const onMessage = this.createOnMessage().bind(this);
     // consume messages sent to all
     channel.consume(queueNames.all, onMessage);
   }
