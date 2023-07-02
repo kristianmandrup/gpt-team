@@ -1,24 +1,29 @@
-import { MessengerSubject, ISubject } from './subject';
+import { MessengerSubject, ISubject, MsgMetaInfo } from './subject';
 import { IAIMsgAgent, TeamProps } from './types';
 import { IObserver } from './observer';
 
-export type OnMessageCb = (msg: string) => void;
+export type OnMessageCb = (struct: MessageStruct) => void;
+export type AIMsgAgentParams = {
+  team: TeamProps;
+  subject: ISubject;
+  onMessageCb?: OnMessageCb;
+};
 
+export type MessageStruct = {
+  message: string;
+  meta: MsgMetaInfo;
+};
 export class AIMsgAgent implements IAIMsgAgent, IObserver {
   team: TeamProps;
   subject: ISubject;
-  messages: string[] = [];
+  messages: MessageStruct[] = [];
   onMessageCb?: OnMessageCb;
   initialized = false;
   done = false;
 
   protected terminationMsgs = ['COMPLETED', 'TERMINATED'];
 
-  constructor(opts: {
-    team: TeamProps;
-    subject: ISubject;
-    onMessageCb?: OnMessageCb;
-  }) {
+  constructor(opts: AIMsgAgentParams) {
     const { team, subject, onMessageCb } = opts;
     this.team = team;
     this.onMessageCb = onMessageCb;
@@ -62,7 +67,7 @@ export class AIMsgAgent implements IAIMsgAgent, IObserver {
 
   // observer
   update(subject: ISubject): void {
-    if (subject instanceof MessengerSubject) this.onMessage(subject.message);
+    if (subject instanceof MessengerSubject) this.onMessage(subject.struct());
   }
 
   async processMessages() {
@@ -77,10 +82,11 @@ export class AIMsgAgent implements IAIMsgAgent, IObserver {
     return this.messages[this.messages.length - 1];
   }
 
-  onMessage(msg: string) {
-    console.log({ received: msg });
-    this.messages.push(msg);
-    this.onMessageCb && this.onMessageCb(msg);
+  onMessage(struct: MessageStruct) {
+    const { message, meta } = struct;
+    console.log('received', { message, meta });
+    this.messages.push(struct);
+    this.onMessageCb && this.onMessageCb(struct);
   }
 
   protected isTeamDone({ body }: any) {

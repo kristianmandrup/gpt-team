@@ -17,6 +17,8 @@ export interface ISubject {
  * The Subject owns some important state and notifies observers when the state
  * changes.
  */
+export type MsgMetaInfo = Record<string, any>;
+
 export class MessengerSubject implements ISubject {
   /**
    * @type {number} For the sake of simplicity, the Subject's state, essential
@@ -24,6 +26,14 @@ export class MessengerSubject implements ISubject {
    */
   public messages: string[] = [];
   public message = '';
+  public meta: MsgMetaInfo = {};
+
+  struct() {
+    return {
+      message: this.message,
+      meta: this.meta,
+    };
+  }
 
   /**
    * @type {IObserver[]} List of subscribers. In real life, the list of
@@ -71,10 +81,11 @@ export class MessengerSubject implements ISubject {
    * triggers a notification method whenever something important is about to
    * happen (or after it).
    */
-  public sendMsg(msg: string): void {
-    this.message = msg;
-    this.messages.push(msg);
-    console.log(`New messages added to state: ${msg}`);
+  public sendMsg(message: string, meta: any = {}): void {
+    this.message = message;
+    this.meta = meta;
+    this.messages.push(message);
+    console.log(`Added to Subject:`, { message, meta });
     this.notify();
   }
 }

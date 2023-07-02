@@ -1,8 +1,10 @@
 import { MessageBus, TeamProps } from '@gpt-team/channel';
-import { FileWriterAgent } from './file-writer-agent';
+import { FileWriterMsgBusAgent } from './file-writer-msgbus-agent';
 
+// const stderrSpy = jest.spyOn(process.stderr, 'write').mockImplementation()
+// expect(stderrSpy).toBeCalledWith('something error')
 describe('FileWriterAgent', () => {
-  let agent: FileWriterAgent;
+  let agent: FileWriterMsgBusAgent;
 
   const msgBus = new MessageBus('amqp://localhost');
   const team: TeamProps = {
@@ -10,7 +12,7 @@ describe('FileWriterAgent', () => {
   };
 
   beforeEach(() => {
-    agent = new FileWriterAgent({ msgBus, team });
+    agent = new FileWriterMsgBusAgent({ msgBus, team });
   });
 
   it('should work', () => {

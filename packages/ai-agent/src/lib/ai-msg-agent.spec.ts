@@ -17,17 +17,21 @@ describe('AIMsgAgent', () => {
     await agent.close();
   });
 
+  const expectAgentMsg = (msg: string) => {
+    return new Promise((resolve) => {
+      agent.setCb(() => {
+        agent.setDone();
+        expect(agent.getLastMessage()).toEqual(msg);
+        resolve(true);
+      });
+      subject.sendMsg(msg);
+    });
+  };
+
   it('should work', async () => {
     await agent.init();
     await agent.start();
     console.log('sending msg');
-    return new Promise((resolve) => {
-      agent.setCb(() => {
-        agent.setDone();
-        expect(agent.getLastMessage()).toEqual('hello');
-        resolve(true);
-      });
-      subject.sendMsg('hello');
-    });
+    await expectAgentMsg('hello');
   });
 });

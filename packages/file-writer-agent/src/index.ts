@@ -1,1 +1,1 @@
-export * from './lib/file-writer-agent';
+export * from './lib/file-writer-msgbus-agent';

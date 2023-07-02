@@ -9,7 +9,10 @@ import {
 } from '@gpt-team/ai-agent';
 
 // Function to process project descriptions and generate use cases
-export class FileWriterAgent extends AIMsgBusAgent implements IAIMsgBusAgent {
+export class FileWriterMsgBusAgent
+  extends AIMsgBusAgent
+  implements IAIMsgBusAgent
+{
   basePath: string = process.cwd();
 
   override getSendQueues(): string[] {
