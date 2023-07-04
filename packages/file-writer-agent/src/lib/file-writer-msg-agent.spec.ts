@@ -15,15 +15,15 @@ describe('FileWriterMsgAgent', () => {
       name: 'ui',
     };
     subject = new MessengerSubject();
-    const workspace: DirectoryJSON = {
-      'style.css': 'body: {color: red;}',
-    };
     // Reset the in-memory file system before each test
     vol.reset();
     // Create the directory structure
     vol.mkdirSync(path.join(process.cwd()), { recursive: true });
 
     // set up existing filesystem
+    const workspace: DirectoryJSON = {
+      'style.css': 'body: {color: red;}',
+    };
     vol.fromJSON(workspace, process.cwd());
 
     agent = new FileWriterMsgAgent({ team, subject });

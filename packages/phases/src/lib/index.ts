@@ -1,3 +1,3 @@
-export * from './file-phases'
-export * from './yaml-phases'
-export * from './types'
+export * from './file';
+export * from './yaml';
+export * from './types';

@@ -19,7 +19,7 @@ export interface IPhaseTasks {
 }
 export interface IPhaseTask {
   name: string;
-  getPhase?: () => IPhase;
+  getPhase?: () => IPhase | undefined;
   loadMessages?: () => Promise<void>;
   nextMessage: () => Promise<string | undefined>;
   getSubscriptionNames?: () => Promise<string[]>;
