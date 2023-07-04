@@ -30,7 +30,7 @@ export class FilePhases extends FilePhaseHandler implements IPhases {
   private currentPhase?: IPhase;
   private basePath: string;
   private phasesPath: string;
-  private done: boolean = false;
+  private done = false;
 
   isDone(): boolean {
     return this.done;
@@ -89,8 +89,8 @@ export class FilePhase extends FilePhaseHandler implements IPhase {
   private folderPath: string;
   private phaseTasksPath: string;
   private goalPath: string;
-  private goal: string = '';
-  private done: boolean = false;
+  private goal = '';
+  private done = false;
 
   isDone(): boolean {
     return this.done;
@@ -135,7 +135,7 @@ export class PhaseTasks extends FilePhaseHandler implements IPhaseTasks {
   private tasksPath: string;
   private tasks: IPhaseTask[] = [];
   private currentTask?: IPhaseTask;
-  private done: boolean = false;
+  private done = false;
   private phase: IPhase;
 
   isDone(): boolean {
@@ -153,7 +153,7 @@ export class PhaseTasks extends FilePhaseHandler implements IPhaseTasks {
   }
 
   // TODO: only folders
-  fileFilter(file: string) {
+  override fileFilter(file: string) {
     return this.indexof(file) >= 0;
   }
 
@@ -200,7 +200,7 @@ export class FilePhaseTask extends FilePhaseHandler implements IPhaseTask {
   private folderPath: string;
   private messages: string[] = [];
   private config: any;
-  private done: boolean = false;
+  private done = false;
   private phase: IPhase;
 
   isDone(): boolean {
@@ -227,7 +227,7 @@ export class FilePhaseTask extends FilePhaseHandler implements IPhaseTask {
   }
 
   // TODO: only txt and md files
-  fileFilter(file: string) {
+  override fileFilter(file: string) {
     return this.indexof(file) >= 0;
   }
 
