@@ -9,6 +9,7 @@ export const loadYamlFile = async (filePath: string) => {
     return yaml.load(file);
   } catch (e) {
     console.log(e);
+    return;
   }
 };
 
@@ -34,7 +35,13 @@ export class YamlPhases implements IPhases {
 
   async loadPhases() {
     const config: any = await loadYamlFile(this.phasesPath);
-    for (const phaseConfig in config.phases as any[]) {
+    if (!config) return;
+    const { phases } = config;
+    if (!phases) {
+      console.log('Missing phases in config');
+      return;
+    }
+    for (const phaseConfig in phases as any[]) {
       const phase = new YamlPhase(phaseConfig);
       this.phases.push(phase);
     }

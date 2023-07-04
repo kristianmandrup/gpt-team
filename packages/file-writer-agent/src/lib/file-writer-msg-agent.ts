@@ -1,5 +1,4 @@
-import * as amqp from 'amqplib';
-import { parseChat, filesToFileSystem, FileInfo } from '@gpt-team/ai';
+import { parseChat, FileInfo } from '@gpt-team/ai';
 import * as path from 'path';
 import {
   AIMsgAgent,
@@ -35,8 +34,13 @@ export class FileWriterMsgAgent extends AIMsgAgent {
   }
 
   fileToFileSystem(fi: FileInfo, meta: any = {}) {
-    console.log('writing to', fi.path, meta);
-    writeToFile(fi.path, fi.content);
+    meta = {
+      ...this.meta,
+      meta,
+    };
+    console.log('writing to', fi);
+    const write = meta.writeToFile || writeToFile;
+    write(fi.path, fi.content);
   }
 
   // use fs to write files

@@ -249,20 +249,26 @@ export class FilePhaseTask extends FilePhaseHandler implements IPhaseTask {
       return fs.readFileSync(fullFilePath, 'utf8');
     } catch (e) {
       console.log(e);
+      return;
     }
   }
 
   async loadMessages() {
-    if (this.messages.length > 0) return;
-    const files = fs.readdirSync(this.folderPath);
-    const useFiles = files.filter((f) => this.fileFilter(f));
-    const sortedFiles = useFiles.sort((f1: string, f2: string) => {
-      return this.indexof(f1) <= this.indexof(f2) ? 1 : 0;
-    });
-    for (const filePath of sortedFiles) {
-      const message = await this.loadMsgFile(filePath);
-      if (!message) continue;
-      this.messages.push(message);
+    try {
+      if (this.messages.length > 0) return;
+      const files = fs.readdirSync(this.folderPath);
+      const useFiles = files.filter((f) => this.fileFilter(f));
+      const sortedFiles = useFiles.sort((f1: string, f2: string) => {
+        return this.indexof(f1) <= this.indexof(f2) ? 1 : 0;
+      });
+      for (const filePath of sortedFiles) {
+        const message = await this.loadMsgFile(filePath);
+        if (!message) continue;
+        this.messages.push(message);
+      }
+    } catch (_) {
+      console.log('loadMessages: Failed to load messages');
+      return;
     }
   }
 

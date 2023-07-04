@@ -20,6 +20,7 @@ export class AIMsgAgent implements IAIMsgAgent, IObserver {
   onMessageCb?: OnMessageCb;
   initialized = false;
   done = false;
+  meta: any = {};
 
   protected terminationMsgs = ['COMPLETED', 'TERMINATED'];
 
@@ -28,6 +29,11 @@ export class AIMsgAgent implements IAIMsgAgent, IObserver {
     this.team = team;
     this.onMessageCb = onMessageCb;
     this.subject = subject;
+  }
+
+  setMeta(meta: any = {}) {
+    this.meta = meta;
+    return this;
   }
 
   setCb(onMessageCb: OnMessageCb) {

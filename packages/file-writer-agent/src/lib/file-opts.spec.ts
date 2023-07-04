@@ -1,16 +1,19 @@
 import * as fs from 'fs';
+import * as path from 'path';
 import { vol } from 'memfs';
 import { writeToFile, readFromFile } from './file-ops';
 
 jest.mock('fs', () => jest.requireActual('memfs'));
 
-beforeEach(() => {
-  vol.reset(); // Reset the in-memory file system before each test
-});
-
 describe('File operations', () => {
+  beforeEach(() => {
+    vol.reset(); // Reset the in-memory file system before each test
+    vol.mkdirSync(path.join(process.cwd()), { recursive: true }); // Create the directory structure
+  });
+
   it('should write to and read from a file', () => {
-    const filePath = '/hello.txt';
+    const fileName = 'hello.txt';
+    const filePath = path.join(process.cwd(), fileName);
     const fileContent = 'hello world';
 
     writeToFile(filePath, fileContent); // Write to the file
