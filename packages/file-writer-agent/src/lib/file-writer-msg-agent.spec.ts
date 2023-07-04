@@ -1,13 +1,14 @@
 import type { TeamProps } from '@gpt-team/channel';
 import { FileWriterMsgAgent } from './file-writer-msg-agent';
 import { MessengerSubject } from '@gpt-team/ai-agent';
-// fs-extra is used for demonstrational purposes
 import * as fs from 'fs-extra';
 import { vol } from 'memfs';
-// mock `fs` if you use either `fs` or `fs-extra`
-jest.mock('fs');
-// mock `fs/promises` if you use it either in code or tests
-jest.mock('fs/promises');
+import { readFromFile } from './file-ops';
+jest.mock('fs', () => jest.requireActual('memfs'));
+
+beforeEach(() => {
+  vol.reset(); // Reset the in-memory file system before each test
+});
 
 describe('FileWriterMsgAgent', () => {
   let agent: FileWriterMsgAgent;
@@ -17,13 +18,14 @@ describe('FileWriterMsgAgent', () => {
       name: 'ui',
     };
     subject = new MessengerSubject();
-    vol.fromJSON(
-      {
-        'global.css': 'html { background-color: green; }',
-        'style.css': 'body: {color: red;}',
-      },
-      '/tmp/www'
-    );
+    // set up existing filesystem
+    // vol.fromJSON(
+    //   {
+    //     'global.css': 'html { background-color: green; }',
+    //     'style.css': 'body: {color: red;}',
+    //   },
+    //   '/tmp/www'
+    // );
 
     agent = new FileWriterMsgAgent({ team, subject });
   });
@@ -31,7 +33,7 @@ describe('FileWriterMsgAgent', () => {
   afterEach(async () => {
     await agent.close();
     // Reset the mocked fs
-    (fs as any).reset();
+    // (fs as any).reset();
   });
 
   const expectAgentMsg = (msg: string) => {
@@ -50,5 +52,19 @@ describe('FileWriterMsgAgent', () => {
     await agent.start();
     console.log('sending msg');
     await expectAgentMsg('hello');
+  });
+
+  it('should write a file to the file system', () => {
+    // await agent.init();
+    // await agent.start();
+    console.log('write files');
+    const filePath = 'hello.txt';
+    const fileContent = 'hello world';
+    agent.fileToFileSystem({ path: filePath, content: fileContent });
+    expect(fs.existsSync(filePath)).toBeTruthy();
+
+    // Read from the file and check that the content is correct
+    const readContent = readFromFile(filePath);
+    expect(readContent).toBe(fileContent);
   });
 });

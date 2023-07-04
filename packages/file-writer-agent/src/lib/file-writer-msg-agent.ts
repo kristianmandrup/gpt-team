@@ -8,6 +8,7 @@ import {
   MessengerSubject,
   MessageStruct,
 } from '@gpt-team/ai-agent';
+import { writeToFile } from './file-ops';
 
 // Function to process project descriptions and generate use cases
 export class FileWriterMsgAgent extends AIMsgAgent {
@@ -33,9 +34,15 @@ export class FileWriterMsgAgent extends AIMsgAgent {
     return { content: struct.message, meta: struct.meta };
   }
 
+  fileToFileSystem(fi: FileInfo, meta: any = {}) {
+    console.log('writing to', fi.path, meta);
+    writeToFile(fi.path, fi.content);
+  }
+
   // use fs to write files
-  filesToFileSystem(filesInfo: FileInfo[], meta: any) {
-    return;
+  filesToFileSystem(filesInfo: FileInfo[], meta: any = {}) {
+    const writeFile = this.fileToFileSystem.bind(this);
+    filesInfo.map((fi) => writeFile(fi, meta));
   }
 
   setFs(fs: any) {
@@ -53,7 +60,7 @@ export class FileWriterMsgAgent extends AIMsgAgent {
     };
     const msg = 'files written to fs';
     this.sendMsgToAll(msg, metaInfo);
-
+    super.onMessage(struct);
     // send output returned from step to UI channel
   }
 

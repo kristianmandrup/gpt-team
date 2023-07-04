@@ -42,7 +42,11 @@ export const createConsumer =
       sendMsgs.push(sendUiMsg);
     }
 
-    const sendDeliverable = createSend(channel, queueNames.deliverables, 'ui');
+    const sendDeliverable = createSend(
+      channel,
+      queueNames['deliverables'],
+      'ui'
+    );
 
     if (text.match(/-DELIVERABLE-/)) {
       // for fs writer agent to process

@@ -1,8 +1,9 @@
 import * as amqp from 'amqplib';
+import { Channel } from './channel';
 
 export class MessageBus {
   private url: string;
-  private connection: amqp.Connection;
+  private connection?: amqp.Connection;
 
   constructor(url: string) {
     this.url = url;
@@ -14,6 +15,9 @@ export class MessageBus {
   }
 
   getChannel = async () => {
+    if (!this.connection) {
+      throw new Error('No connection established');
+    }
     const channel = await this.connection.createChannel();
     return new Channel(channel);
   };

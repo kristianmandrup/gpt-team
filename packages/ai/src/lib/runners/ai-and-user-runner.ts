@@ -1,5 +1,5 @@
 import type { ChatCompletionRequestMessage } from 'openai';
-import { getControl, PromptAiOpts } from '../question';
+import { Control, getControl, PromptAiOpts } from '../question';
 import { createGetAiResponse } from '../response/';
 import { getLastResponseMessage } from '../message';
 import { AbortError, AbortEvent } from '../question';
@@ -31,15 +31,17 @@ export class AiAndUserRunner implements IAiAndUserRunner {
       const responseMessages = await getAiResponse({ messages, prompt });
       const aiGeneratedContent = getLastResponseMessage(responseMessages);
       // Ai can terminate further processing by saying no to needing further clarification from user
-      let control = getControl(aiGeneratedContent);
-      if (control) {
+      const control = getControl(aiGeneratedContent);
+      if (control == Control.ABORT) {
         throw new AbortEvent('AI completed');
       }
       const userRunner = new UserRunner(opts);
       // User can terminate further processing by writing command to abort (q = quit)
       const userMessage = await userRunner.run();
       userMessage && messages.push(userMessage);
-    } catch (_) {}
+    } catch (_) {
+      return messages;
+    }
     return messages;
   }
 }

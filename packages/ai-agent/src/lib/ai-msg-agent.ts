@@ -83,9 +83,9 @@ export class AIMsgAgent implements IAIMsgAgent, IObserver {
   }
 
   onMessage(struct: MessageStruct) {
-    const { message, meta } = struct;
-    console.log('received', { message, meta });
+    console.log('received', struct);
     this.messages.push(struct);
+    console.log('call callback', struct);
     this.onMessageCb && this.onMessageCb(struct);
   }
 
