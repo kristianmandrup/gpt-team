@@ -3,10 +3,10 @@ import { Control } from './command';
 import { AskQuestionFn, askQuestion } from './question';
 import { AbortEvent } from './exceptions';
 
-export type AskUser = () => Promise<ChatCompletionRequestMessage | Control>;
+export type AskUser = () => Promise<string | Control>;
 
 export const $createAskUser =
-  (opts: any) => async (): Promise<ChatCompletionRequestMessage | Control> => {
+  (opts: any) => async (): Promise<string | Control> => {
     const question = opts.askQuestion || askQuestion;
     console.log('createUserMessage');
     let user = await question('(answer in text, or "q" to move on)\n');
@@ -20,7 +20,7 @@ export const $createAskUser =
       '{remaining unclear areas} remaining questions.\n' +
       '{Next question}\n' +
       'If everything is sufficiently clear, only answer "no".';
-    return { role: 'user', content: user };
+    return user;
   };
 
 export type HandleUserOpts = {
@@ -34,7 +34,7 @@ export type HandleUserParams = {
 
 export const getUserMessage = async (
   opts: HandleUserOpts
-): Promise<ChatCompletionRequestMessage | undefined> => {
+): Promise<string | undefined> => {
   const askUser = createAskUser(opts);
   if (!askUser) return;
   const userMessage = await askUser();
