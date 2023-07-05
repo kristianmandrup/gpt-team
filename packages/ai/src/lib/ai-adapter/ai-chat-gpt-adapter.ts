@@ -25,7 +25,7 @@ export class AIChatGPTAdapter implements IAIAdapter {
   protected messages: ChatCompletionRequestMessage[] = [];
   protected assistantMessage?: string;
 
-  getLatestAssistantMessage() {
+  getLatestAssistantMessage(): string | undefined {
     return this.assistantMessage;
   }
 
@@ -46,7 +46,7 @@ export class AIChatGPTAdapter implements IAIAdapter {
     this.messages = messages;
   }
 
-  async next(opts: NextOpts): Promise<void> {
+  async next(opts: NextOpts): Promise<string | undefined> {
     const { messages, prompt } = opts;
     // TODO: use output if present
     if (prompt) {
@@ -58,24 +58,25 @@ export class AIChatGPTAdapter implements IAIAdapter {
     const assistantMessage = this.assistantRequest(chat);
     messages.push(assistantMessage);
     this.assistantMessage = assistantMessage.content;
+    return assistantMessage.content;
   }
 
-  chatRequestFor(
-    messages: ChatCompletionRequestMessage[]
-  ): CreateChatCompletionRequest {
+  chatRequestFor(messages: string[]): CreateChatCompletionRequest {
+    const requestMessages: ChatCompletionRequestMessage[] =
+      this.mapToChatCompletionRequests(messages);
     return {
-      messages,
+      messages: requestMessages,
       model: this.opts['model'] || 'gpt-3.5-turbo',
       ...this.opts,
     };
   }
 
-  async aiResponse(messages: ChatCompletionRequestMessage[]) {
+  async aiResponse(messages: string[]): Promise<string[]> {
     try {
       const chatRequest = this.chatRequestFor(messages);
       console.log('calling createChatCompletion with:', chatRequest);
       const resp = await this.client.createChatCompletion(chatRequest);
-      return resp.data.choices;
+      return this.mapAIResponses(resp.data.choices);
     } catch (ex) {
       console.error(ex);
       throw ex;
@@ -85,6 +86,12 @@ export class AIChatGPTAdapter implements IAIAdapter {
   assistantRequest(chat: string[]): ChatCompletionRequestMessage {
     const content = chat.join('');
     return { role: 'assistant', content };
+  }
+
+  mapToChatCompletionRequests(messages: string[], role = 'user') {
+    return messages.map(
+      (message) => ({ message, role } as ChatCompletionRequestMessage)
+    );
   }
 
   mapAIResponses(

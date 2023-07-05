@@ -1,4 +1,4 @@
-import { AIAdapter } from './ai';
+import { AIAdapter } from './ai-adapter';
 
 describe('ai', () => {
   const ai = new AIAdapter({});

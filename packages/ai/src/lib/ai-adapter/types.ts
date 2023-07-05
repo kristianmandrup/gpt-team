@@ -9,5 +9,6 @@ export type NextOpts = {
 
 export interface IAIAdapter {
   start(startParams: StartParams): Promise<void>;
-  next(opts: NextOpts): Promise<void>;
+  next(opts: NextOpts): Promise<string | undefined>;
+  getLatestAssistantMessage(): string | undefined;
 }

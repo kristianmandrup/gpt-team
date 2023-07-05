@@ -1,6 +1,6 @@
 import { ChatCompletionRequestMessage } from 'openai';
 import { AbortError } from './exceptions';
-import { IAIAdapter } from '../ai';
+import { IAIAdapter } from '../ai-adapter';
 
 export type CreateSystemMsgOpts = {
   ai?: IAIAdapter;

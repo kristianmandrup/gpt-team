@@ -1,5 +1,5 @@
 import { IPhaseTask } from '@gpt-team/phases';
-import { IAIAdapter } from '../ai';
+import { IAIAdapter } from '../ai-adapter';
 import { ChatCompletionRequestMessage } from 'openai';
 import { CreateSystemMsgOpts } from '../question';
 
