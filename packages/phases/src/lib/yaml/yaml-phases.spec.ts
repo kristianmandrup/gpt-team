@@ -1,10 +1,10 @@
 import * as path from 'path';
 import { DirectoryJSON, vol } from 'memfs';
-import { FilePhases } from './file-phases';
+import { YamlPhases } from './yaml-phases';
 
 jest.mock('fs', () => jest.requireActual('memfs'));
 
-describe('FilePhases', () => {
+describe('YamlPhases', () => {
   const content: any = {
     useCases: 'hello world',
   };
@@ -33,7 +33,7 @@ describe('FilePhases', () => {
   it('should process Tasks and read next task from file in folder', async () => {
     const basePath = process.cwd();
     const phasesFolderPath = path.join(basePath, 'phases');
-    const phases = new FilePhases(phasesFolderPath);
+    const phases = new YamlPhases(phasesFolderPath);
     const phase = await phases.nextPhase();
     if (!phase) {
       throw new Error('Missing phase in test');

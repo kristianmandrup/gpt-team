@@ -5,12 +5,13 @@ import { FilePhaseHandler } from './file-phase-handler';
 import { FilePhaseTasks } from './file-phase-tasks';
 
 export class FilePhase extends FilePhaseHandler implements IPhase {
-  private phaseTasks: FilePhaseTasks;
-  private folderPath: string;
-  private phaseTasksPath: string;
-  private goalPath: string;
-  private goal = '';
-  private done = false;
+  protected phaseTasks: FilePhaseTasks;
+  protected folderPath: string;
+  protected phaseTasksPath: string;
+  protected goalPath: string;
+  protected goal = '';
+  protected done = false;
+  protected phases?: IPhases;
 
   isDone(): boolean {
     return this.done;
@@ -24,8 +25,9 @@ export class FilePhase extends FilePhaseHandler implements IPhase {
     return new FilePhaseTasks(phaseTasksPath, this);
   }
 
-  constructor(phases: IPhases, folderPath: string) {
+  constructor(folderPath: string, phases: IPhases) {
     super();
+    this.phases = phases;
     this.folderPath = folderPath;
     this.goalPath = path.join(this.folderPath, 'goal.md');
     this.phaseTasksPath = path.join(this.folderPath, 'phase-tasks');

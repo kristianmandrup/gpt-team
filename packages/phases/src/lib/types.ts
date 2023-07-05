@@ -7,6 +7,7 @@ export interface IPhases {
 }
 export interface IPhase {
   name: string;
+  getPhases?: () => IPhases | undefined;
   isDone(): boolean;
   setDone(): void;
   getGoal(): string;
@@ -14,6 +15,7 @@ export interface IPhase {
   nextTask(): Promise<IPhaseTask | undefined>;
 }
 export interface IPhaseTasks {
+  getPhase?: () => IPhase | undefined;
   loadTasks?: () => Promise<void>;
   nextTask(): Promise<IPhaseTask | undefined>;
 }

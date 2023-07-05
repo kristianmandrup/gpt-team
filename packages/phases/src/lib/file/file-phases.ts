@@ -6,11 +6,11 @@ import { FilePhaseHandler } from './file-phase-handler';
 import { FilePhase } from './file-phase';
 
 export class FilePhases extends FilePhaseHandler implements IPhases {
-  private phases: IPhase[] = [];
-  private currentPhase?: IPhase;
-  private basePath: string;
-  private phasesPath: string;
-  private done = false;
+  protected phases: IPhase[] = [];
+  protected currentPhase?: IPhase;
+  protected basePath: string;
+  protected phasesPath: string;
+  protected done = false;
 
   isDone(): boolean {
     return this.done;
@@ -37,8 +37,8 @@ export class FilePhases extends FilePhaseHandler implements IPhases {
     }
   }
 
-  createPhase(folderPath: string) {
-    return new FilePhase(this, folderPath);
+  createPhase(folderPath: string): IPhase {
+    return new FilePhase(folderPath, this);
   }
 
   async loadPhases() {

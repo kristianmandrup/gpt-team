@@ -1,18 +1,13 @@
-import { Configuration, OpenAIApi, CreateChatCompletionRequest, ChatCompletionRequestMessage, CreateChatCompletionResponse } from "openai";
-import 'dotenv/config'
+import 'dotenv/config';
+import { StartParams } from './ai-chat-gpt-adapter';
 
 export type NextOpts = {
-    messages: ChatCompletionRequestMessage[]
-    prompt?: string
-    output?: any
-}
+  messages: any[];
+  prompt?: string;
+  meta?: any;
+};
 
-export interface IAIToolkit {    
-    start(system: string, user: string): Promise<ChatCompletionRequestMessage[]>
-  
-    fsystem(msg: string): ChatCompletionRequestMessage
-  
-    fuser(msg: string): ChatCompletionRequestMessage
-  
-    next({messages, prompt, output}: NextOpts): Promise<ChatCompletionRequestMessage[]>
+export interface IAIAdapter {
+  start(startParams: StartParams): Promise<void>;
+  next(opts: NextOpts): Promise<void>;
 }

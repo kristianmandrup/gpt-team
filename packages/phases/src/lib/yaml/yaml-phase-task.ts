@@ -1,10 +1,10 @@
 import { IPhase, IPhaseTask } from '../types';
 
 export class YamlPhaseTask implements IPhaseTask {
-  private taskConfig: any = {};
-  private messages: string[] = [];
-  private done = false;
-  private phase?: IPhase;
+  protected taskConfig: any = {};
+  protected messages: string[] = [];
+  protected done = false;
+  protected phase?: IPhase;
 
   isDone(): boolean {
     return this.done;
