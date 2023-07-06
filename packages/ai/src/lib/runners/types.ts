@@ -3,7 +3,7 @@
 import { IAIAdapter } from '../ai-adapter';
 
 export type AiMessageStruct = {
-  message: string;
+  content: string;
   meta?: any;
 };
 

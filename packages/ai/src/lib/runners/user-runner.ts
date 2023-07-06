@@ -3,6 +3,7 @@
 import { Control } from '../question';
 import { askQuestion } from '../question';
 import { AbortEvent } from '../question';
+import { IUser } from './user';
 
 export type IUserRunner = {
   run(opts: any): Promise<string | undefined>;
@@ -17,8 +18,10 @@ const unclearMsg = `\n\n
 
 export class UserRunner {
   opts: any;
+  user: IUser;
 
-  constructor(opts: any = {}) {
+  constructor(user: IUser, opts: any = {}) {
+    this.user = user;
     this.opts = opts;
   }
 
@@ -32,11 +35,11 @@ export class UserRunner {
   }
 
   async askQuestion(question: string): Promise<string> {
-    return await askQuestion(question);
+    return await this.user.askQuestion(question);
   }
 
   buildUserMessage(userMessage: string) {
-    return userMessage.concat(unclearMsg);
+    return userMessage; //.concat(unclearMsg);
   }
 
   async askUser(): Promise<string | Control> {

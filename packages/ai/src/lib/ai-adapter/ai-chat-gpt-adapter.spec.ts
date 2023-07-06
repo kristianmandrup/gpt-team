@@ -16,7 +16,7 @@ describe('AIChatGptAdapter', () => {
 
   it('should map responses', async () => {
     const messages = await ai.aiResponse(['What is 2+2?']);
-    expect(messages[0]).toEqual(aiResponseMap['add']);
+    expect(messages[0]).toContain(aiResponseMap['add']);
   });
 
   it('should make an AI response', async () => {

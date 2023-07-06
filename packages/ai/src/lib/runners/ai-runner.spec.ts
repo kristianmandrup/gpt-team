@@ -1,4 +1,8 @@
-import { AIChatGPTAdapter } from '../ai-adapter';
+import {
+  AIMockAdapter,
+  AIMockerWithResponseStack,
+  IAIMocker,
+} from '../ai-adapter';
 import { AiRunner } from './ai-runner';
 
 describe('AiRunner', () => {
@@ -6,9 +10,13 @@ describe('AiRunner', () => {
   const questionMap = {
     add: 'what is 2+2?',
   };
-
+  const answerMap = {
+    add: '4',
+  };
   beforeEach(() => {
-    const aiAdapter = new AIChatGPTAdapter();
+    const responseStack = ['hello from AI'];
+    const mocker: IAIMocker = new AIMockerWithResponseStack(responseStack);
+    const aiAdapter = new AIMockAdapter(mocker);
     runner = new AiRunner({ aiAdapter });
   });
 

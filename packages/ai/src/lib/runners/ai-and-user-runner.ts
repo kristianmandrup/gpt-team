@@ -1,4 +1,3 @@
-import type { ChatCompletionRequestMessage } from 'openai';
 import { Control, getControl } from '../question';
 import { AbortEvent } from '../question';
 import { IUserRunner } from './user-runner';

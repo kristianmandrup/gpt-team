@@ -1,43 +1,28 @@
-import {
-  Configuration,
-  OpenAIApi,
-  CreateChatCompletionRequest,
-  ChatCompletionRequestMessage,
-  ChatCompletionResponseMessage,
-} from 'openai';
-import 'dotenv/config';
 import { IAIAdapter, NextOpts, StartParams } from './types';
 import { fsystem, fuser } from '../question';
+import { AiMessageStruct } from '../runners/types';
+import { IAIMocker } from './ai-mocker';
 
-export type SimplifiedCompletionResponse = {
-  message?: ChatCompletionResponseMessage;
-};
-
-export const configuration = new Configuration({
-  apiKey: process.env['OPENAI_API_KEY'],
-});
-
-export class AIChatGPTAdapter implements IAIAdapter {
-  protected client: any;
+export class AIMockAdapter implements IAIAdapter {
   protected opts: Record<string, any>;
-  protected messages: ChatCompletionRequestMessage[] = [];
+  protected messages: AiMessageStruct[] = [];
   protected assistantMessage?: string;
+  protected mocker: IAIMocker;
 
   getLatestAssistantMessage(): string | undefined {
     return this.assistantMessage;
   }
 
-  constructor(opts?: Record<string, any>, config?: Configuration) {
-    console.log('configure OpenAIAPI with', config || configuration);
-    this.client = new OpenAIApi(configuration).createChatCompletion;
-    this.opts = opts || {};
+  constructor(mocker: IAIMocker, opts: Record<string, any> = {}) {
+    this.mocker = mocker;
+    this.opts = opts;
   }
 
   async start(startParams: StartParams) {
     const { user, system } = startParams;
     const sysMessages = system.map(fsystem);
     const userMessages = user.map(fuser);
-    const messages: ChatCompletionRequestMessage[] = [
+    const messages: AiMessageStruct[] = [
       ...(sysMessages || []),
       ...(userMessages || []),
     ];
@@ -56,15 +41,15 @@ export class AIChatGPTAdapter implements IAIAdapter {
     const assistantMessage = this.assistantRequest(chat);
     messages.push(assistantMessage);
     this.assistantMessage = assistantMessage.content;
-    return assistantMessage.content;
+    return this.assistantMessage;
   }
 
-  chatRequestFor(messages: string[]): CreateChatCompletionRequest {
-    const requestMessages: ChatCompletionRequestMessage[] =
+  chatRequestFor(messages: string[]): AiMessageStruct {
+    const requestMessages: AiMessageStruct[] =
       this.mapToChatCompletionRequests(messages);
+    const lastMsg = requestMessages.pop();
     return {
-      messages: requestMessages,
-      model: this.opts['model'] || 'gpt-3.5-turbo',
+      content: lastMsg?.content || '',
       ...this.opts,
     };
   }
@@ -73,31 +58,24 @@ export class AIChatGPTAdapter implements IAIAdapter {
     try {
       const chatRequest = this.chatRequestFor(messages);
       console.log('calling createChatCompletion with:', chatRequest);
-      const resp = await this.client.createChatCompletion(chatRequest);
-      return this.mapAIResponses(resp.data.choices);
+      return this.mocker.createChatCompletion(chatRequest);
     } catch (ex) {
       console.error(ex);
       throw ex;
     }
   }
 
-  assistantRequest(chat: string[]): ChatCompletionRequestMessage {
+  assistantRequest(chat: string[]): AiMessageStruct {
     const content = chat.join('');
-    return { role: 'assistant', content };
+    return { meta: { role: 'assistant' }, content };
   }
 
   mapToChatCompletionRequests(messages: string[], role = 'user') {
-    return messages.map(
-      (message) => ({ message, role } as ChatCompletionRequestMessage)
-    );
+    return messages.map((content) => ({ content, role } as AiMessageStruct));
   }
 
-  mapAIResponses(
-    aiCompletionResponse: SimplifiedCompletionResponse[]
-  ): string[] {
+  mapAIResponses(aiCompletionResponse: AiMessageStruct[]): string[] {
     console.log('mapping AI Response', aiCompletionResponse);
-    return aiCompletionResponse?.map(
-      (choice) => choice?.message?.content ?? ''
-    );
+    return aiCompletionResponse?.map((choice) => choice?.content ?? '');
   }
 }

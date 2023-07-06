@@ -1,5 +1,6 @@
 import 'dotenv/config';
-import { StartParams } from './ai-chat-gpt-adapter';
+
+export type StartParams = Record<string, any>;
 
 export type NextOpts = {
   messages: any[];

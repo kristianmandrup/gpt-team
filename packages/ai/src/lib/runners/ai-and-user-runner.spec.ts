@@ -1,6 +1,12 @@
-import { AIChatGPTAdapter } from '../ai-adapter';
+import {
+  AIMockAdapter,
+  AIMockerWithResponseStack,
+  IAIMocker,
+} from '../ai-adapter';
 import { AiAndUserRunner } from './ai-and-user-runner';
 import { AiRunner } from './ai-runner';
+import { MockUserWithResponseStack } from './mock-user';
+import { UserRunner } from './user-runner';
 
 describe('AiRunner', () => {
   let runner: AiAndUserRunner;
@@ -9,9 +15,14 @@ describe('AiRunner', () => {
   };
 
   beforeEach(() => {
-    const aiAdapter = new AIChatGPTAdapter();
+    const responseStack = ['hello from AI'];
+    const mocker: IAIMocker = new AIMockerWithResponseStack(responseStack);
+    const aiAdapter = new AIMockAdapter(mocker);
     const aiRunner = new AiRunner({ aiAdapter });
-    runner = new AiAndUserRunner({ aiRunner });
+    const userResponses = ['hi'];
+    const mockUser = new MockUserWithResponseStack(userResponses);
+    const userRunner = new UserRunner(mockUser);
+    runner = new AiAndUserRunner({ aiRunner, userRunner });
   });
 
   describe('run', () => {

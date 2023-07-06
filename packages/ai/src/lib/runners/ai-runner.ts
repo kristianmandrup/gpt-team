@@ -23,12 +23,13 @@ export class AiRunner implements IAiRunner {
 
   async getAiResponse(runOpts: RunParams = {}): Promise<string | undefined> {
     const { messages } = this;
-    runOpts = {
-      messages,
+    const allMessages = messages.concat(runOpts.messages);
+    const meta = {
+      ...this.opts,
       ...runOpts,
     };
     if (!runOpts.messages) return;
-    return await this.getAiAdapter()?.next({ messages: runOpts.messages });
+    return await this.getAiAdapter()?.next({ messages: allMessages, meta });
   }
 
   async run(runOpts: RunParams = {}) {
