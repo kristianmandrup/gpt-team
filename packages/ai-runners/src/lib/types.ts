@@ -1,11 +1,6 @@
 // types
 
-import { IAIAdapter } from '../ai-adapter';
-
-export type AiMessageStruct = {
-  content: string;
-  meta?: any;
-};
+import { IAIAdapter } from '@gpt-team/ai';
 
 export type IUserRunner = {
   run(): Promise<string | undefined>;

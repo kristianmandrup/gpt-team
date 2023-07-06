@@ -18,6 +18,7 @@
       "@gpt-team/agent-storage": ["packages/agent-storage/src/index.ts"],
       "@gpt-team/ai": ["packages/ai/src/index.ts"],
       "@gpt-team/ai-agent": ["packages/ai-agent/src/index.ts"],
+      "@gpt-team/ai-runners": ["packages/ai-runners/src/index.ts"],
       "@gpt-team/channel": ["packages/channel/src/index.ts"],
       "@gpt-team/file-writer-agent": [
         "packages/file-writer-agent/src/index.ts"

@@ -2,7 +2,7 @@ import {
   AIMockAdapter,
   AIMockerWithResponseStack,
   IAIMocker,
-} from '../ai-adapter';
+} from '@gpt-team/ai';
 import { AiAndUserRunner } from './ai-and-user-runner';
 import { AiRunner } from './ai-runner';
 import { MockUserWithResponseStack } from './mock-user';
@@ -15,7 +15,7 @@ describe('AiRunner', () => {
   };
 
   beforeEach(() => {
-    const responseStack = ['hello from AI'];
+    const responseStack = [{ content: 'hello from AI' }];
     const mocker: IAIMocker = new AIMockerWithResponseStack(responseStack);
     const aiAdapter = new AIMockAdapter(mocker);
     const aiRunner = new AiRunner({ aiAdapter });

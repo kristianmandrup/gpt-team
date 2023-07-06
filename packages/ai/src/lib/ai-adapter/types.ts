@@ -1,5 +1,10 @@
 import 'dotenv/config';
 
+export type AiMessageStruct = {
+  content: string;
+  meta?: any;
+};
+
 export type StartParams = Record<string, any>;
 
 export type NextOpts = {
