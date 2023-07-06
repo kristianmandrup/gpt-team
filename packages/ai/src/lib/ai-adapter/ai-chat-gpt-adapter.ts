@@ -52,8 +52,11 @@ export class AIChatGPTAdapter implements IAIAdapter {
       messages.push(userPromptMessage);
     }
     const aiResponses: any[] = await this.aiResponse(messages);
+    console.log('next', { aiResponses });
     const chat = this.mapAIResponses(aiResponses);
+    console.log({ chat });
     const assistantMessage = this.assistantRequest(chat);
+    console.log({ assistantMessage });
     messages.push(assistantMessage);
     this.assistantMessage = assistantMessage.content;
     return assistantMessage.content;
@@ -92,12 +95,8 @@ export class AIChatGPTAdapter implements IAIAdapter {
     );
   }
 
-  mapAIResponses(
-    aiCompletionResponse: SimplifiedCompletionResponse[]
-  ): string[] {
+  mapAIResponses(aiCompletionResponse: any[]): string[] {
     console.log('mapping AI Response', aiCompletionResponse);
-    return aiCompletionResponse?.map(
-      (choice) => choice?.message?.content ?? ''
-    );
+    return aiCompletionResponse;
   }
 }

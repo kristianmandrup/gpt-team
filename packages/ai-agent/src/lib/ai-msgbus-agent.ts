@@ -3,7 +3,6 @@ import {
   MessageBus,
   OnMessage,
   createSend,
-  queueNames,
   MsgPayload,
 } from '@gpt-team/channel';
 import * as amqp from 'amqplib';
@@ -14,16 +13,21 @@ export type SendMsgFn = (payload: MsgPayload) => Promise<void>;
 export type AIMsgBusAgentParams = { msgBus: MessageBus; team: TeamProps };
 
 export class AIMsgBusAgent implements IAIAgent {
-  msgBus: MessageBus;
-  connection?: amqp.Connection;
-  channel?: Channel;
-  team: TeamProps;
-  send: Record<string, SendMsgFn> = {};
+  protected msgBus: MessageBus;
+  protected connection?: amqp.Connection;
+  protected channel?: Channel;
+  protected team: TeamProps;
+  protected send: Record<string, SendMsgFn> = {};
+  protected subscriptionNames: string[] = [];
 
   protected terminationMsgs = ['COMPLETED', 'TERMINATED'];
 
   getSendQueues(): string[] {
     return [];
+  }
+
+  getTeam(): TeamProps {
+    return this.team;
   }
 
   constructor(opts: AIMsgBusAgentParams) {
@@ -44,15 +48,18 @@ export class AIMsgBusAgent implements IAIAgent {
   async init() {
     this.connection = await this.msgBus?.connect();
     this.channel = await this.msgBus?.getChannel();
-    return this;
   }
 
   async start() {
     await this.run();
   }
 
+  subscribeTo(queueNames: string[]) {
+    this.subscriptionNames = queueNames;
+  }
+
   async getSubscriptions() {
-    return [];
+    return this.subscriptionNames;
   }
 
   createSender(name: string) {

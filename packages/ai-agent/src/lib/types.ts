@@ -14,8 +14,8 @@ export type ProcessPhasesOps = {
 };
 
 export interface IAIAgent {
-  team: TeamProps;
-  init: () => Promise<IAIAgent>;
+  getTeam(): TeamProps;
+  init: () => Promise<void>;
   run: () => Promise<void>;
 }
 

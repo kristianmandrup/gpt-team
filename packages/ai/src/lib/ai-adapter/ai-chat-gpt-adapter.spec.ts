@@ -9,7 +9,7 @@ describe('AIChatGptAdapter', () => {
   beforeEach(() => {
     ai = new AIChatGPTAdapter();
     ai.aiResponse = async (): Promise<string[]> => {
-      return ['exactly right'];
+      return [aiResponseMap['add']];
     };
     // mock ai.aiResponse or this.client.createChatCompletion
   });
@@ -25,7 +25,8 @@ describe('AIChatGptAdapter', () => {
     await ai.start({ user, system });
     const messages = ['hi there'];
     const prompt = 'what is 2+2?';
-    await ai.next({ messages, prompt });
+    const msg = await ai.next({ messages, prompt });
+    console.log({ msg });
     const aiMsg = ai.getLatestAssistantMessage();
     expect(aiMsg).toEqual(aiResponseMap['add']);
   });
