@@ -1,6 +1,8 @@
+// user-runner spec
+
 import { UserRunner } from './user-runner';
 
-describe('AIChatGptAdapter', () => {
+describe('UserRunner', () => {
   let runner: UserRunner;
   const questionMap = {
     add: 'what is 2+2?',

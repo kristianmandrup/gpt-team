@@ -1,33 +1,46 @@
-import { ChatCompletionRequestMessage } from 'openai';
-import { createGetAiResponse } from '../response/';
-import { getLastResponseMessage } from '../message';
-import { getControl, AbortError, AbortEvent, Control } from '../question';
+import { getControl, AbortEvent, Control } from '../question';
+import { IAIAdapter } from '../ai-adapter';
+import { AIRunnerParams, IAiRunner, RunParams } from './types';
 
-export type IAiRunner = {
-  run(): Promise<ChatCompletionRequestMessage[]>;
-};
+export class AiRunner implements IAiRunner {
+  opts: any = {};
+  protected messages: string[] = [];
+  protected aiAdapter: IAIAdapter;
 
-export class AiRunner {
-  opts: any;
-  protected messages: ChatCompletionRequestMessage[] = [];
-
-  constructor(messages: ChatCompletionRequestMessage[], opts: any) {
-    this.messages = messages;
-    this.opts = opts;
+  constructor({ aiAdapter, messages, options }: AIRunnerParams) {
+    this.messages = messages || [];
+    this.opts = options || {};
+    this.aiAdapter = aiAdapter;
   }
 
-  async run() {
-    const { opts, messages } = this;
-    const getAiResponse = createGetAiResponse(opts);
-    if (!getAiResponse) {
-      throw new AbortError('missing getAiResponse');
+  setAiAdapter(aiAdapter: IAIAdapter) {
+    this.aiAdapter = aiAdapter;
+  }
+
+  getAiAdapter(): IAIAdapter | undefined {
+    return this.aiAdapter;
+  }
+
+  async getAiResponse(runOpts: RunParams = {}): Promise<string | undefined> {
+    const { messages } = this;
+    runOpts = {
+      messages,
+      ...runOpts,
+    };
+    if (!runOpts.messages) return;
+    return await this.getAiAdapter()?.next({ messages: runOpts.messages });
+  }
+
+  async run(runOpts: RunParams = {}) {
+    const responseMessage = await this.getAiResponse(runOpts);
+    if (!responseMessage) {
+      throw new AbortEvent('No AI response');
     }
-    const responseMessages = await getAiResponse({ messages, prompt });
-    const aiGeneratedContent = getLastResponseMessage(responseMessages);
     // Ai can terminate further processing by saying no to needing further clarification from user
-    const control = getControl(aiGeneratedContent);
+    const control = getControl(responseMessage);
     if (control == Control.ABORT) {
       throw new AbortEvent('AI completed');
     }
+    return [responseMessage];
   }
 }

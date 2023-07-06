@@ -1,18 +1,19 @@
-import { ChatCompletionRequestMessage } from 'openai';
+// user runner
+
 import { Control } from '../question';
 import { askQuestion } from '../question';
 import { AbortEvent } from '../question';
 
 export type IUserRunner = {
-  run(): Promise<ChatCompletionRequestMessage | undefined>;
+  run(opts: any): Promise<string | undefined>;
 };
 
-const unclear = `\n\n
-Is anything else unclear? If yes, only answer in the form:
-{remaining unclear areas} remaining questions.\n
-{Next question}\n
-If everything is sufficiently clear, only answer "no".
-`;
+const unclearMsg = `\n\n
+  Is anything else unclear? If yes, only answer in the form:
+  {remaining unclear areas} remaining questions.\n
+  {Next question}\n
+  If everything is sufficiently clear, only answer "no".
+  `;
 
 export class UserRunner {
   opts: any;
@@ -34,14 +35,19 @@ export class UserRunner {
     return await askQuestion(question);
   }
 
+  buildUserMessage(userMessage: string) {
+    return userMessage.concat(unclearMsg);
+  }
+
   async askUser(): Promise<string | Control> {
     console.log('createUserMessage');
-    let user = await this.askQuestion('(answer in text, or "q" to move on)\n');
+    const userMsg = await this.askQuestion(
+      '(answer in text, or "q" to move on)\n'
+    );
     // console.log(`User input: ${user}`);
-    if (!user || user === 'q') {
+    if (!userMsg || userMsg === 'q') {
       return Control.ABORT;
     }
-    user += unclear;
-    return user;
+    return this.buildUserMessage(userMsg);
   }
 }
