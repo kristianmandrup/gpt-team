@@ -1,6 +1,6 @@
 # Ai
 
-This library contains the following modules:
+This library contpackages-ai-adapterns the following modules:
 
 ## AI adapter
 
@@ -43,14 +43,14 @@ The following is an example of using the `AIMockAdapter` with a `mocker` to simu
 ```ts
 const responseStack = ['hello from AI'];
 const mocker: IAIMocker = new AIMockerWithResponseStack(responseStack);
-const aiAdapter = new AIMockAdapter(mocker);
-const aiRunner = new AiRunner({ aiAdapter });
+const packages-ai-adapterAdapter = new AIMockAdapter(mocker);
+const packages-ai-adapterRunner = new AiRunner({ packages-ai-adapterAdapter });
 ```
 
 ## Building
 
-Run `nx build ai` to build the library.
+Run `nx build packages-ai-adapter` to build the library.
 
 ## Running unit tests
 
-Run `nx test ai` to execute the unit tests via [Jest](https://jestjs.io).
+Run `nx test packages-ai-adapter` to execute the unit tests via [Jest](https://jestjs.io).

@@ -48,6 +48,15 @@ export class YamlPhase implements IPhase {
     }
   }
 
+  onDone() {
+    this.phases?.onDone(this)
+  }
+
+  taskCompleted() {
+    this.done = true;
+    this.onDone()
+  }
+
   async nextTask() {
     await this.loadTasks();
     const task = this.tasks.shift();

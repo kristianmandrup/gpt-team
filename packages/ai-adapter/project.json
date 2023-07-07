@@ -1,0 +1,44 @@
+{
+  "name": "packages-ai-adapter",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/packages/ai-adapter/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/packages/ai-adapter",
+        "main": "packages/packages/ai-adapter/src/index.ts",
+        "tsConfig": "packages/packages/ai-adapter/tsconfig.lib.json",
+        "assets": ["packages/packages/ai-adapter/*.md"]
+      }
+    },
+    "publish": {
+      "command": "node tools/scripts/publish.mjs ai {args.ver} {args.tag}",
+      "dependsOn": ["build"]
+    },
+    "lint": {
+      "executor": "@nx/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["packages/packages/ai-adapter/**/*.ts"]
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "packages/packages/ai-adapter/jest.config.ts",
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "codeCoverage": true
+        }
+      }
+    }
+  },
+  "tags": []
+}

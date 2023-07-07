@@ -19,11 +19,11 @@ export class AIMockAdapter implements IAIAdapter {
   }
 
   toUserMessage(message: string) {
-    return ChatGptCompletion.toUserMessage(message)
+    return ChatGptCompletion.toUserMessage(message);
   }
 
   toSystemMessage(message: string) {
-    return ChatGptCompletion.toSystemMessage(message)
+    return ChatGptCompletion.toSystemMessage(message);
   }
 
   async start(startParams: StartParams) {
@@ -40,7 +40,7 @@ export class AIMockAdapter implements IAIAdapter {
   async next(opts: NextOpts): Promise<string | undefined> {
     const { messages, prompt } = opts;
     // TODO: use output if present
-    const allMessages = [...this.messages, ...messages]
+    const allMessages = [...this.messages, ...messages];
     if (prompt) {
       const userPromptMessage = ChatGptCompletion.toUserMessage(prompt);
       allMessages.push(userPromptMessage);

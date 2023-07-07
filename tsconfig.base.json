@@ -16,15 +16,17 @@
     "baseUrl": ".",
     "paths": {
       "@gpt-team/agent-storage": ["packages/agent-storage/src/index.ts"],
-      "@gpt-team/ai": ["packages/ai/src/index.ts"],
       "@gpt-team/ai-actions": ["packages/ai-actions/src/index.ts"],
+      "@gpt-team/ai-adapter": ["packages/ai-adapter/src/index.ts"],
       "@gpt-team/ai-agent": ["packages/ai-agent/src/index.ts"],
       "@gpt-team/ai-runners": ["packages/ai-runners/src/index.ts"],
       "@gpt-team/channel": ["packages/channel/src/index.ts"],
       "@gpt-team/file-writer-agent": [
         "packages/file-writer-agent/src/index.ts"
       ],
+      "@gpt-team/machines": ["packages/machines/src/index.ts"],
       "@gpt-team/phases": ["packages/phases/src/index.ts"],
+      "@gpt-team/prompt-user": ["packages/prompt-user/src/index.ts"],
       "@gpt-team/team-server": ["packages/team-server/src/index.ts"],
       "@gpt-team/ui-agent": ["packages/ui-agent/src/index.ts"]
     }

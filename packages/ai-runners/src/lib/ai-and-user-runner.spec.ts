@@ -2,7 +2,7 @@ import {
   AIMockAdapter,
   AIMockerWithResponseStack,
   IAIMocker,
-} from '@gpt-team/ai';
+} from '@gpt-team/packages/ai-adapter';
 import { AiAndUserRunner } from './ai-and-user-runner';
 import { AiRunner } from './ai-runner';
 import { MockUserWithResponseStack } from './mock-user';

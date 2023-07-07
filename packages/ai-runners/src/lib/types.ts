@@ -1,6 +1,6 @@
 // types
 
-import { IAIAdapter } from '@gpt-team/ai';
+import { IAIAdapter } from '@gpt-team/packages/ai-adapter';
 
 export type IUserRunner = {
   run(): Promise<string | undefined>;

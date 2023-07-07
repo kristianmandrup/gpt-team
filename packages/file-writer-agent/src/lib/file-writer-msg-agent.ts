@@ -1,4 +1,4 @@
-import { parseChat, FileInfo } from '@gpt-team/ai';
+import { parseChat, FileInfo } from '@gpt-team/packages/ai-adapter';
 import * as path from 'path';
 import {
   AIMsgAgent,
