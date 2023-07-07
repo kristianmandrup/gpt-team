@@ -12,5 +12,5 @@ export const getControl = (content?: string) => {
 
 export enum Control {
   ABORT,
-  // CONTINUE,
+  CONTINUE,
 }

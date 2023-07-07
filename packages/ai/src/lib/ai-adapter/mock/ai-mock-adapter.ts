@@ -1,6 +1,6 @@
-import { IAIAdapter, NextOpts, StartParams } from './types';
-import { fsystem, fuser } from '../question';
-import { AiMessageStruct } from '../runners/types';
+import { ChatGptCompletion } from '../chat-gpt/chat-gpt-completion';
+import { IAIAdapter, NextOpts, StartParams } from '../types';
+import { AiMessageStruct } from '../types';
 import { IAIMocker } from './ai-mocker';
 
 export class AIMockAdapter implements IAIAdapter {
@@ -18,10 +18,18 @@ export class AIMockAdapter implements IAIAdapter {
     this.opts = opts;
   }
 
+  toUserMessage(message: string) {
+    return ChatGptCompletion.toUserMessage(message)
+  }
+
+  toSystemMessage(message: string) {
+    return ChatGptCompletion.toSystemMessage(message)
+  }
+
   async start(startParams: StartParams) {
     const { user, system } = startParams;
-    const sysMessages = system.map(fsystem);
-    const userMessages = user.map(fuser);
+    const sysMessages = system && system.map(this.toSystemMessage);
+    const userMessages = user && user.map(this.toUserMessage);
     const messages: AiMessageStruct[] = [
       ...(sysMessages || []),
       ...(userMessages || []),
@@ -32,15 +40,17 @@ export class AIMockAdapter implements IAIAdapter {
   async next(opts: NextOpts): Promise<string | undefined> {
     const { messages, prompt } = opts;
     // TODO: use output if present
+    const allMessages = [...this.messages, ...messages]
     if (prompt) {
-      const userPromptMessage = fuser(prompt);
-      messages.push(userPromptMessage);
+      const userPromptMessage = ChatGptCompletion.toUserMessage(prompt);
+      allMessages.push(userPromptMessage);
     }
-    const aiResponses: any[] = await this.aiResponse(messages);
+    const aiResponses: any[] = await this.aiResponse(allMessages);
     const chat = this.mapAIResponses(aiResponses);
     const assistantMessage = this.assistantRequest(chat);
-    messages.push(assistantMessage);
+    allMessages.push(assistantMessage);
     this.assistantMessage = assistantMessage.content;
+    this.messages = allMessages;
     return this.assistantMessage;
   }
 
