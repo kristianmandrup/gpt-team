@@ -7,7 +7,7 @@ import {
   OnMessage,
   queueNames,
 } from '@gpt-team/channel';
-import type { IAiAndUserRunner } from '@gpt-team/ai';
+import type { IAiAndUserRunner } from '@gpt-team/packages/ai-adapter';
 import type { IPhases, IPhase, IPhaseTask } from '@gpt-team/phases';
 import * as amqp from 'amqplib';
 import { ConsumeMessage } from 'amqplib';

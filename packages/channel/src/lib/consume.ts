@@ -1,4 +1,4 @@
-import type { OutputOpts } from '@gpt-team/ai';
+import type { OutputOpts } from '@gpt-team/packages/ai-adapter';
 import { createSend } from './send';
 import { parseMsg } from './parse';
 import { queueNames } from './config';

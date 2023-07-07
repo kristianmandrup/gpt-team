@@ -1,5 +1,5 @@
 import * as amqp from 'amqplib';
-import { parseChat, filesToFileSystem } from '@gpt-team/ai';
+import { parseChat, filesToFileSystem } from '@gpt-team/packages/ai-adapter';
 import { queueNames, OnMessage } from '@gpt-team/channel';
 import * as path from 'path';
 import {
