@@ -4,24 +4,16 @@ import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 import { FilePhaseHandler } from './file-phase-handler';
 import { FilePhase } from './file-phase';
+import { BasePhases } from '../base/base-phases';
 
-export class FilePhases extends FilePhaseHandler implements IPhases {
-  protected phases: IPhase[] = [];
-  protected currentPhase?: IPhase;
+export class FilePhases extends BasePhases implements IPhases {
   protected basePath: string;
   protected phasesPath: string;
-  protected done = false;
-
-  isDone(): boolean {
-    return this.done;
-  }
-
-  setDone() {
-    this.done = true;
-  }
+  protected handler: FilePhaseHandler;
 
   constructor(basePath: string) {
     super();
+    this.handler = new FilePhaseHandler();
     this.basePath = basePath;
     this.phasesPath = path.join(this.basePath, 'phases');
   }
@@ -31,39 +23,42 @@ export class FilePhases extends FilePhaseHandler implements IPhases {
     try {
       const file = fs.readFileSync(phasesOrderPath, 'utf8');
       const doc = yaml.load(file);
-      this.ordering = doc;
+      this.handler.ordering = doc;
     } catch (e) {
       console.log(e);
     }
   }
 
   createPhase(folderPath: string): IPhase {
-    return new FilePhase(folderPath, this);
+    return new FilePhase(folderPath, { phases: this });
   }
 
   async loadPhases() {
     if (this.phases.length > 0) return;
-    const sortedFolders = this.sortedFoldersFrom(this.phasesPath);
+    const sortedFolders = this.handler.sortedFoldersFrom(this.phasesPath);
     for (const folderPath of sortedFolders) {
       const phase = this.createPhase(folderPath);
       this.phases.push(phase);
     }
   }
 
-  async nextPhase() {
+  override async nextPhase() {
     await this.loadPhases();
     this.currentPhase = this.phases.shift();
     if (!this.currentPhase) {
-      this.done = true;
+      this.setCompleted();
+      return;
     }
     return this.currentPhase;
   }
 
-  async nextTask() {
+  override async nextTask() {
     if (this.isDone()) return;
     if (!this.currentPhase) {
+      this.currentTask && this.onTaskCompleted(this.currentTask);
       this.nextPhase();
     }
-    return this.currentPhase?.nextTask();
+    this.currentTask = await this.currentPhase?.nextTask();
+    return this.currentTask;
   }
 }

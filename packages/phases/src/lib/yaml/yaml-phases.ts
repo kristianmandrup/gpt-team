@@ -52,6 +52,11 @@ export class YamlPhases implements IPhases {
     }
   }
 
+  setCompleted() {
+    this.done = true;
+    this.callbacks?.onDone && this.callbacks?.onDone(this);
+  }
+
   async nextPhase() {
     await this.loadPhases();
     this.currentPhase = this.phases.shift();

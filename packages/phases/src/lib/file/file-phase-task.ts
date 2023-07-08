@@ -1,28 +1,23 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
-import { IPhase, IPhaseTask } from '../types';
+import { IPhaseTask, IPhaseTaskOptionParams } from '../types';
 import { FilePhaseHandler } from './file-phase-handler';
+import { BasePhaseTask } from '../base/base-phase-task';
 
 // such as use-cases
-export class FilePhaseTask extends FilePhaseHandler implements IPhaseTask {
-  private folderPath: string;
-  private messages: string[] = [];
-  private config: any;
-  private done = false;
-  private phase?: IPhase;
+export class FilePhaseTask extends BasePhaseTask implements IPhaseTask {
+  protected folderPath: string;
+  protected config: any;
+  protected handler = new FilePhaseHandler();
 
-  isDone(): boolean {
-    return this.done;
-  }
-
-  get name(): string {
+  getName(): string {
     return path.parse(this.folderPath).name;
   }
 
-  constructor(folderPath: string, phase?: IPhase) {
-    super();
-    this.phase = phase;
+  constructor(folderPath: string, opts: IPhaseTaskOptionParams) {
+    super(opts);
+    this.handler = new FilePhaseHandler();
     this.folderPath = folderPath;
   }
 
@@ -36,8 +31,8 @@ export class FilePhaseTask extends FilePhaseHandler implements IPhaseTask {
   }
 
   // TODO: only txt and md files
-  override fileFilter(file: string) {
-    return this.indexof(file) >= 0;
+  fileFilter(file: string) {
+    return this.handler.indexof(file) >= 0;
   }
 
   async loadConfig() {
@@ -68,12 +63,12 @@ export class FilePhaseTask extends FilePhaseHandler implements IPhaseTask {
       const files = fs.readdirSync(this.folderPath);
       const useFiles = files.filter((f) => this.fileFilter(f));
       const sortedFiles = useFiles.sort((f1: string, f2: string) => {
-        return this.indexof(f1) <= this.indexof(f2) ? 1 : 0;
+        return this.handler.indexof(f1) <= this.handler.indexof(f2) ? 1 : 0;
       });
       for (const filePath of sortedFiles) {
         const message = await this.loadMsgFile(filePath);
         if (!message) continue;
-        this.messages.push(message);
+        this.addMessage(message);
       }
     } catch (_) {
       console.log('loadMessages: Failed to load messages');
@@ -81,11 +76,11 @@ export class FilePhaseTask extends FilePhaseHandler implements IPhaseTask {
     }
   }
 
-  async nextMessage() {
+  override async nextMessage() {
     await this.loadMessages();
     const msg = this.messages.shift();
     if (!msg) {
-      this.done = true;
+      this.setCompleted();
     }
     return msg;
   }

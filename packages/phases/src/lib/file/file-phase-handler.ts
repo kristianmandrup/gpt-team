@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 export class FilePhaseHandler {
-  protected ordering: any;
+  public ordering: any;
 
   indexof(folderPath: string): number {
     const fileName = path.parse(folderPath).name;

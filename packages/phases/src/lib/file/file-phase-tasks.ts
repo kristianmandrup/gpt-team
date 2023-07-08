@@ -43,7 +43,7 @@ export class FilePhaseTasks extends FilePhaseHandler implements IPhaseTasks {
   }
 
   createTask(folderPath: string) {
-    return new FilePhaseTask(folderPath, this.getPhase());
+    return new FilePhaseTask(folderPath, { phase: this.getPhase() });
   }
 
   async loadTasks() {

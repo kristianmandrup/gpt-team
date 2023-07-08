@@ -34,9 +34,9 @@ describe('FilePhaseTask', () => {
     const basePath = process.cwd();
     const phaseFolderPath = path.join(basePath, 'analysis');
     const phases = new FilePhases(basePath);
-    const phase = new FilePhase(phases, phaseFolderPath);
+    const phase = new FilePhase(phaseFolderPath, { phases });
     const taskFolderPath = path.join(phaseFolderPath, 'design');
-    const task = new FilePhaseTask(taskFolderPath, phase);
+    const task = new FilePhaseTask(taskFolderPath, { phase });
     const message = await task.nextMessage();
 
     // Check that the message matches task file
