@@ -22,6 +22,12 @@ export interface IPhasesOptionParams {
   callbacks?: PhasesCallbacks;
 }
 
+export interface IPhaseTasksOptionParams {
+  loggingOn?: boolean;
+  phase?: IPhase;
+  callbacks?: PhaseCallbacks;
+}
+
 export interface IPhaseOptionParams {
   loggingOn?: boolean;
   phases?: IPhases;

@@ -30,6 +30,7 @@ order:
         'phase-order.yml': `- analysis`,
         analysis: {
           'phase-tasks': {
+            'task-order.yml': `- use-cases`,
             'use-cases.txt': content.useCases,
             'config.yml': configYml,
           },

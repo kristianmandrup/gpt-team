@@ -61,7 +61,7 @@ export class FilePhases extends BasePhases implements IPhases {
       );
     }
     if (sortedFolders.length == 0) {
-      this.log('no phase folders found');
+      this.log(`loadPhases: No phase folders found for ${this.phasesPath}`);
     }
     for (const folderPath of sortedFolders) {
       const phase = this.createPhase(folderPath);

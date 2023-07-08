@@ -1,7 +1,12 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
-import { IPhase, IPhaseTask, IPhaseTasks } from '../types';
+import {
+  IPhase,
+  IPhaseTask,
+  IPhaseTasks,
+  IPhaseTasksOptionParams,
+} from '../types';
 import { FilePhaseHandler } from './file-phase-handler';
 import { FilePhaseTask } from './file-phase-task';
 
@@ -20,14 +25,16 @@ export class FilePhaseTasks extends FilePhaseHandler implements IPhaseTasks {
     return this.phase;
   }
 
-  constructor(tasksPath: string, phase?: IPhase) {
-    super();
+  constructor(tasksPath: string, opts: IPhaseTasksOptionParams) {
+    super(opts);
+    const { phase } = opts;
     this.phase = phase;
     this.tasksPath = tasksPath;
   }
 
   async loadOrder() {
     const tasksOrderPath = path.join(this.tasksPath, 'task-order.yml');
+    this.log(`loadOrder: loading from ${tasksOrderPath}`);
     try {
       const file = fs.readFileSync(tasksOrderPath, 'utf8');
       const doc = yaml.load(file);
@@ -37,7 +44,9 @@ export class FilePhaseTasks extends FilePhaseHandler implements IPhaseTasks {
         );
       }
       this.ordering = doc;
+      this.log(`loadOrder: loaded task order`);
     } catch (e) {
+      this.log(`loadOrder error: ${e}`);
       console.log(e);
     }
   }
@@ -48,16 +57,28 @@ export class FilePhaseTasks extends FilePhaseHandler implements IPhaseTasks {
 
   async loadTasks() {
     if (this.tasks.length > 0) return;
+    this.log(`loadTasks`);
     await this.loadOrder();
-    const files = fs.readdirSync(this.tasksPath);
-    const useFolders = files.filter((f) => this.fileFilter(f));
-    const sortedFolders = useFolders.sort((f1: string, f2: string) => {
+    const folders = this.readFolders(this.tasksPath);
+    const sortedFolders = folders.sort((f1: string, f2: string) => {
       return this.indexOf(f1) <= this.indexOf(f2) ? 1 : 0;
     });
+    if (!sortedFolders) {
+      throw new Error(`loadTasks: No task folders found for ${this.tasksPath}`);
+    }
+    if (sortedFolders.length == 0) {
+      this.log(`loadPhases: No task folders found for ${this.tasksPath}`);
+    }
     for (const folderPath of sortedFolders) {
       const task = this.createTask(folderPath);
-      this.tasks.push(task);
+      this.addTask(task);
     }
+  }
+
+  addTask(task: IPhaseTask) {
+    const name = task.getName && task.getName();
+    this.log(`add task ${name}`);
+    this.tasks.push(task);
   }
 
   async nextTask() {

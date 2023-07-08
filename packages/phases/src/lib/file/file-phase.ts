@@ -13,7 +13,10 @@ export class FilePhase extends BasePhase implements IPhase {
   protected handler: FilePhaseHandler;
 
   createTasks(phaseTasksPath: string = this.phaseTasksPath) {
-    return new FilePhaseTasks(phaseTasksPath, this);
+    return new FilePhaseTasks(phaseTasksPath, {
+      phase: this,
+      loggingOn: this.loggingOn,
+    });
   }
 
   constructor(folderPath: string, opts: IPhaseOptionParams) {
@@ -36,6 +39,7 @@ export class FilePhase extends BasePhase implements IPhase {
   }
 
   override async nextTask() {
+    await this.phaseTasks.loadTasks();
     if (this.phaseTasks.isDone()) {
       this.setCompleted();
       return;
