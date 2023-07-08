@@ -1,36 +1,21 @@
-import { IPhase, IPhaseTask, IPhases } from '../types';
+import { BasePhase } from '../base';
+import { IPhase, IPhaseOptionParams } from '../types';
 import { YamlPhaseTask } from './yaml-phase-task';
 
-export class YamlPhase implements IPhase {
-  private goal = '';
-  private done = false;
+export class YamlPhase extends BasePhase implements IPhase {
   private config: any = {};
-  private tasks: IPhaseTask[] = [];
-  private phases?: IPhases;
 
-  isDone(): boolean {
-    return this.done;
-  }
-
-  setDone(): void {
-    this.done = true;
-  }
-
-  constructor(config: any, phases?: IPhases) {
+  constructor(config: any, opts: IPhaseOptionParams) {
+    super(opts);
     this.config = config;
-    this.phases = phases;
   }
 
   getPhases() {
     return this.phases;
   }
 
-  get name(): string {
+  getName(): string {
     return this.config.name;
-  }
-
-  getGoal(): string {
-    return this.goal;
   }
 
   async loadGoal() {
@@ -48,20 +33,11 @@ export class YamlPhase implements IPhase {
     }
   }
 
-  onDone() {
-    this.phases?.onDone(this)
-  }
-
-  taskCompleted() {
-    this.done = true;
-    this.onDone()
-  }
-
-  async nextTask() {
+  override async nextTask() {
     await this.loadTasks();
     const task = this.tasks.shift();
     if (!task) {
-      this.done = true;
+      this.setCompleted();
     }
     return task;
   }

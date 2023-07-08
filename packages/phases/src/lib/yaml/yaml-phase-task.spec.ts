@@ -42,8 +42,8 @@ describe('FilePhaseTask', () => {
     const phaseConfig = {
       analysis: taskConfig,
     };
-    const phase = new YamlPhase(phaseConfig, phases);
-    const task = new YamlPhaseTask(taskConfig, phase);
+    const phase = new YamlPhase(phaseConfig, { phases });
+    const task = new YamlPhaseTask(taskConfig, { phase });
     const message = await task.nextMessage();
 
     // Check that the message matches task file

@@ -6,13 +6,13 @@ import {
 } from '../types';
 
 export abstract class BasePhaseTask implements IPhaseTask {
+  protected callbacks?: PhaseTaskCallbacks;
   protected messages: string[] = [];
   protected phase?: IPhase;
   protected current?: IPhaseTask;
   protected done = false;
-  protected callbacks?: PhaseTaskCallbacks;
   protected goal = '';
-  public name = 'noname';
+  protected name = 'noname';
 
   constructor({ phase, callbacks }: IPhaseTaskOptionParams) {
     this.callbacks = callbacks;
@@ -38,6 +38,7 @@ export abstract class BasePhaseTask implements IPhaseTask {
   setCompleted() {
     this.done = true;
     this.callbacks?.onDone && this.callbacks?.onDone(this);
+    this.phase?.onTaskDone && this.phase?.onTaskDone(this);
   }
 
   async nextMessage() {

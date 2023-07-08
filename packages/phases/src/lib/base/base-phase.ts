@@ -1,12 +1,24 @@
-import { IPhase, IPhaseTask, PhaseCallbacks } from '../types';
+import {
+  IPhase,
+  IPhaseOptionParams,
+  IPhaseTask,
+  IPhases,
+  PhaseCallbacks,
+} from '../types';
 
 export abstract class BasePhase implements IPhase {
+  protected phases?: IPhases;
   protected tasks: IPhaseTask[] = [];
-  protected current?: IPhaseTask;
+  protected currentTask?: IPhaseTask;
   protected done = false;
   protected callbacks?: PhaseCallbacks;
   protected goal = '';
   public name = 'noname';
+
+  constructor({ phases, callbacks }: IPhaseOptionParams) {
+    this.callbacks = callbacks;
+    this.phases = phases;
+  }
 
   getGoal(): string {
     return this.goal;
@@ -25,12 +37,17 @@ export abstract class BasePhase implements IPhase {
     this.callbacks?.onDone && this.callbacks?.onDone(this);
   }
 
+  onTaskDone(task: IPhaseTask) {
+    this.phases?.onTaskDone && this.phases?.onTaskDone(task);
+  }
+
   async nextTask() {
     if (this.isDone()) return;
-    if (!this.current) {
+    if (!this.currentTask) {
       this.setCompleted();
       return;
     }
-    return this.tasks.shift();
+    this.currentTask = this.tasks.shift();
+    return this.currentTask;
   }
 }

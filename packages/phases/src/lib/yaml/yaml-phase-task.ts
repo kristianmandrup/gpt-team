@@ -1,16 +1,10 @@
-import { IPhase, IPhaseTask } from '../types';
+import { BasePhaseTask } from '../base';
+import { IPhase, IPhaseTask, IPhaseTaskOptionParams } from '../types';
 
-export class YamlPhaseTask implements IPhaseTask {
+export class YamlPhaseTask extends BasePhaseTask implements IPhaseTask {
   protected taskConfig: any = {};
-  protected messages: string[] = [];
-  protected done = false;
-  protected phase?: IPhase;
 
-  isDone(): boolean {
-    return this.done;
-  }
-
-  get name(): string {
+  getName(): string {
     return this.taskConfig.name;
   }
 
@@ -24,8 +18,8 @@ export class YamlPhaseTask implements IPhaseTask {
     return subscriptions || [];
   }
 
-  constructor(taskConfig: any, phase: IPhase) {
-    this.phase = phase;
+  constructor(taskConfig: any, opts: IPhaseTaskOptionParams) {
+    super(opts);
     this.taskConfig = taskConfig;
   }
 
@@ -37,7 +31,7 @@ export class YamlPhaseTask implements IPhaseTask {
     this.messages = this.taskConfig.messages;
   }
 
-  async nextMessage() {
+  override async nextMessage() {
     await this.loadMessages();
     const msg = this.messages.shift();
     if (!msg) {

@@ -1,8 +1,9 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
-import { IPhase, IPhases } from '../types';
+import { IPhases, IPhasesOptionParams } from '../types';
 import { YamlPhase } from './yaml-phase';
+import { BasePhases } from '../base';
 
 export const loadYamlFile = async (filePath: string) => {
   try {
@@ -14,28 +15,18 @@ export const loadYamlFile = async (filePath: string) => {
   }
 };
 
-export class YamlPhases implements IPhases {
-  private phases: IPhase[] = [];
-  private currentPhase?: IPhase;
+export class YamlPhases extends BasePhases implements IPhases {
   private basePath: string;
   private phasesPath: string;
-  private done = false;
 
-  isDone(): boolean {
-    return this.done;
-  }
-
-  setDone() {
-    this.done = true;
-  }
-
-  constructor(basePath: string) {
+  constructor(basePath: string, opts: IPhasesOptionParams = {}) {
+    super(opts);
     this.basePath = basePath;
     this.phasesPath = path.join(this.basePath, 'phases.yaml');
   }
 
   createPhase(config: any) {
-    return new YamlPhase(config);
+    return new YamlPhase(config, { phases: this });
   }
 
   async loadPhases() {
@@ -52,25 +43,12 @@ export class YamlPhases implements IPhases {
     }
   }
 
-  setCompleted() {
-    this.done = true;
-    this.callbacks?.onDone && this.callbacks?.onDone(this);
-  }
-
-  async nextPhase() {
+  override async nextPhase() {
     await this.loadPhases();
     this.currentPhase = this.phases.shift();
     if (!this.currentPhase) {
-      this.done = true;
+      this.setCompleted();
     }
     return this.currentPhase;
-  }
-
-  async nextTask() {
-    if (this.isDone()) return;
-    if (!this.currentPhase) {
-      this.nextPhase();
-    }
-    return this.currentPhase?.nextTask();
   }
 }

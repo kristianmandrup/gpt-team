@@ -9,10 +9,15 @@ export interface PhasesCallbacks {
 
 export interface PhaseCallbacks {
   onDone?: PhaseCallback;
+  onTaskDone?: PhaseTaskCallback;
 }
 
 export interface PhaseTaskCallbacks {
   onDone?: PhaseTaskCallback;
+}
+
+export interface IPhasesOptionParams {
+  callbacks?: PhasesCallbacks;
 }
 
 export interface IPhaseOptionParams {
@@ -26,6 +31,7 @@ export interface IPhaseTaskOptionParams {
 }
 
 export interface IPhases {
+  onTaskDone?: PhaseTaskCallback;
   isDone(): boolean;
   setDone(): void;
   loadPhases?: () => Promise<void>;
@@ -33,11 +39,12 @@ export interface IPhases {
   nextTask(): Promise<IPhaseTask | undefined>;
 }
 export interface IPhase {
-  name: string;
+  getName?(): string;
+  getGoal?(): string;
+  onTaskDone?: PhaseTaskCallback;
   getPhases?: () => IPhases | undefined;
   isDone(): boolean;
   setDone(): void;
-  getGoal(): string;
   loadGoal?: () => Promise<void>;
   nextTask(): Promise<IPhaseTask | undefined>;
 }
@@ -48,8 +55,11 @@ export interface IPhaseTasks {
 }
 export interface IPhaseTask {
   getName?(): string;
+  getGoal?(): string;
+  isDone(): boolean;
+  setDone(): void;
   getPhase?: () => IPhase | undefined;
-  addMessage: (message: string) => void;
+  addMessage?: (message: string) => void;
   loadMessages?: () => Promise<void>;
   nextMessage: () => Promise<string | undefined>;
   getSubscriptionNames?: () => Promise<string[]>;

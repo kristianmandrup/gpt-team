@@ -6,11 +6,11 @@ import { FilePhaseHandler } from './file-phase-handler';
 import { FilePhaseTask } from './file-phase-task';
 
 export class FilePhaseTasks extends FilePhaseHandler implements IPhaseTasks {
-  private tasksPath: string;
-  private tasks: IPhaseTask[] = [];
-  private currentTask?: IPhaseTask;
-  private done = false;
-  private phase?: IPhase;
+  protected tasksPath: string;
+  protected tasks: IPhaseTask[] = [];
+  protected currentTask?: IPhaseTask;
+  protected done = false;
+  protected phase?: IPhase;
 
   isDone(): boolean {
     return this.done;

@@ -1,4 +1,4 @@
-import type { IPhase, IPhases } from '../types';
+import type { IPhase, IPhases, IPhasesOptionParams } from '../types';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
@@ -11,8 +11,8 @@ export class FilePhases extends BasePhases implements IPhases {
   protected phasesPath: string;
   protected handler: FilePhaseHandler;
 
-  constructor(basePath: string) {
-    super();
+  constructor(basePath: string, opts: IPhasesOptionParams = {}) {
+    super(opts);
     this.handler = new FilePhaseHandler();
     this.basePath = basePath;
     this.phasesPath = path.join(this.basePath, 'phases');
@@ -55,7 +55,6 @@ export class FilePhases extends BasePhases implements IPhases {
   override async nextTask() {
     if (this.isDone()) return;
     if (!this.currentPhase) {
-      this.currentTask && this.onTaskCompleted(this.currentTask);
       this.nextPhase();
     }
     this.currentTask = await this.currentPhase?.nextTask();
