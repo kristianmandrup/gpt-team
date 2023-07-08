@@ -13,11 +13,18 @@ export abstract class BasePhase implements IPhase {
   protected done = false;
   protected callbacks?: PhaseCallbacks;
   protected goal = '';
-  public name = 'noname';
+  protected loggingOn = false;
+  protected name = 'noname';
 
-  constructor({ phases, callbacks }: IPhaseOptionParams) {
+  constructor({ loggingOn, phases, callbacks }: IPhaseOptionParams) {
     this.callbacks = callbacks;
     this.phases = phases;
+    this.loggingOn = Boolean(loggingOn);
+  }
+
+  log(msg: string) {
+    if (!this.loggingOn) return;
+    console.log(msg);
   }
 
   getGoal(): string {

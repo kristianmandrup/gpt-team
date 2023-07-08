@@ -17,7 +17,7 @@ export class FilePhaseTask extends BasePhaseTask implements IPhaseTask {
 
   constructor(folderPath: string, opts: IPhaseTaskOptionParams) {
     super(opts);
-    this.handler = new FilePhaseHandler();
+    new FilePhaseHandler(opts);
     this.folderPath = folderPath;
   }
 
@@ -30,9 +30,16 @@ export class FilePhaseTask extends BasePhaseTask implements IPhaseTask {
     return this.phase;
   }
 
-  // TODO: only txt and md files
   fileFilter(file: string) {
-    return this.handler.indexof(file) >= 0;
+    return this.handler.fileFilter(file);
+  }
+
+  set ordering(order: any) {
+    this.handler.ordering = order;
+  }
+
+  indexOf(filePath: string) {
+    return this.handler.indexOf(filePath);
   }
 
   async loadConfig() {
@@ -40,8 +47,20 @@ export class FilePhaseTask extends BasePhaseTask implements IPhaseTask {
     const configPath = path.join(this.folderPath, 'config.yml');
     try {
       const file = fs.readFileSync(configPath, 'utf8');
-      const doc = yaml.load(file);
+      const doc: any = yaml.load(file);
       this.config = doc;
+      const order = doc['order'];
+      if (!order) {
+        throw new Error(
+          `loadConfig: config file ${configPath} missing 'order' entry`
+        );
+      }
+      if (!Array.isArray(order)) {
+        throw new Error(
+          `loadOrder: loading order from 'order' entry in ${configPath}, the entry must contain an Array of ordered phase task names`
+        );
+      }
+      this.ordering = order;
     } catch (e) {
       console.log(e);
     }
@@ -60,18 +79,23 @@ export class FilePhaseTask extends BasePhaseTask implements IPhaseTask {
   async loadMessages() {
     try {
       if (this.messages.length > 0) return;
+      // includes loading task order
+      await this.loadConfig();
       const files = fs.readdirSync(this.folderPath);
-      const useFiles = files.filter((f) => this.fileFilter(f));
-      const sortedFiles = useFiles.sort((f1: string, f2: string) => {
-        return this.handler.indexof(f1) <= this.handler.indexof(f2) ? 1 : 0;
+      const taskFiles = files.filter((f) => this.fileFilter(f));
+      const sortedFiles = taskFiles.sort((f1: string, f2: string) => {
+        return this.indexOf(f1) <= this.indexOf(f2) ? 1 : 0;
       });
       for (const filePath of sortedFiles) {
         const message = await this.loadMsgFile(filePath);
         if (!message) continue;
         this.addMessage(message);
       }
-    } catch (_) {
-      console.log('loadMessages: Failed to load messages');
+    } catch (e) {
+      console.log(
+        `loadMessages: Failed to load messages from ${this.folderPath}`,
+        e
+      );
       return;
     }
   }

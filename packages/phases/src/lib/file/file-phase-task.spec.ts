@@ -22,9 +22,12 @@ describe('FilePhaseTask', () => {
     };
     vol.fromJSON(workspace, process.cwd());
     vol.fromNestedJSON({
-      analysis: {
-        design: {
-          'use-cases.txt': content.useCases,
+      phases: {
+        'phase-order.yml': `- analysis`,
+        analysis: {
+          design: {
+            'use-cases.txt': content.useCases,
+          },
         },
       },
     });
@@ -32,13 +35,14 @@ describe('FilePhaseTask', () => {
 
   it('should read task from file', async () => {
     const basePath = process.cwd();
+    const phasesFolderPath = path.join(basePath, 'phases');
     const phaseFolderPath = path.join(basePath, 'analysis');
-    const phases = new FilePhases(basePath);
+    const phases = new FilePhases(phasesFolderPath);
     const phase = new FilePhase(phaseFolderPath, { phases });
     const taskFolderPath = path.join(phaseFolderPath, 'design');
     const task = new FilePhaseTask(taskFolderPath, { phase });
     const message = await task.nextMessage();
-
+    console.log(task);
     // Check that the message matches task file
     expect(message).toEqual(content.useCases);
   });

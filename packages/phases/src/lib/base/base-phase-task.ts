@@ -13,10 +13,17 @@ export abstract class BasePhaseTask implements IPhaseTask {
   protected done = false;
   protected goal = '';
   protected name = 'noname';
+  protected loggingOn = false;
 
-  constructor({ phase, callbacks }: IPhaseTaskOptionParams) {
+  constructor({ loggingOn, phase, callbacks }: IPhaseTaskOptionParams) {
     this.callbacks = callbacks;
     this.phase = phase;
+    this.loggingOn = Boolean(loggingOn);
+  }
+
+  log(msg: string) {
+    if (!this.loggingOn) return;
+    console.log(msg);
   }
 
   addMessage(message: string) {

@@ -5,6 +5,7 @@ export type PhaseTaskCallback = (phase: IPhaseTask) => void;
 export interface PhasesCallbacks {
   onDone?: PhasesCallback;
   onTaskDone?: PhaseTaskCallback;
+  onPhaseAdded?: PhaseCallback;
 }
 
 export interface PhaseCallbacks {
@@ -17,15 +18,18 @@ export interface PhaseTaskCallbacks {
 }
 
 export interface IPhasesOptionParams {
+  loggingOn?: boolean;
   callbacks?: PhasesCallbacks;
 }
 
 export interface IPhaseOptionParams {
+  loggingOn?: boolean;
   phases?: IPhases;
   callbacks?: PhaseCallbacks;
 }
 
 export interface IPhaseTaskOptionParams {
+  loggingOn?: boolean;
   phase?: IPhase;
   callbacks?: PhaseTaskCallbacks;
 }

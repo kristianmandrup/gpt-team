@@ -18,7 +18,7 @@ export class FilePhase extends BasePhase implements IPhase {
 
   constructor(folderPath: string, opts: IPhaseOptionParams) {
     super(opts);
-    this.handler = new FilePhaseHandler();
+    this.handler = new FilePhaseHandler(opts);
     this.folderPath = folderPath;
     this.goalPath = path.join(this.folderPath, 'goal.md');
     this.phaseTasksPath = path.join(this.folderPath, 'phase-tasks');

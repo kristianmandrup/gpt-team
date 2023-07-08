@@ -12,9 +12,16 @@ export abstract class BasePhases implements IPhases {
   protected currentTask?: IPhaseTask;
   protected done = false;
   protected callbacks?: PhasesCallbacks;
+  protected loggingOn = false;
 
-  constructor({ callbacks }: IPhasesOptionParams) {
+  constructor({ callbacks, loggingOn }: IPhasesOptionParams) {
     this.callbacks = callbacks;
+    this.loggingOn = Boolean(loggingOn);
+  }
+
+  log(msg: string) {
+    if (!this.loggingOn) return;
+    console.log(msg);
   }
 
   isDone(): boolean {

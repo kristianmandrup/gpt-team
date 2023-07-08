@@ -23,9 +23,12 @@ describe('FilePhaseTask', () => {
     };
     vol.fromJSON(workspace, process.cwd());
     vol.fromNestedJSON({
-      analysis: {
-        design: {
-          'use-cases.txt': content.useCases,
+      phases: {
+        'phase-order.yml': `- analysis`,
+        analysis: {
+          design: {
+            'use-cases.txt': content.useCases,
+          },
         },
       },
     });
@@ -33,6 +36,7 @@ describe('FilePhaseTask', () => {
 
   it('should process Tasks and read next task from file in folder', async () => {
     const basePath = process.cwd();
+    // const phasesFolderPath = path.join(basePath, 'phases');
     const phaseFolderPath = path.join(basePath, 'analysis');
     // const phases = new FilePhases(basePath);
     // const phase = new FilePhase(phases, phaseFolderPath);

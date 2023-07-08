@@ -26,16 +26,16 @@ export class FilePhaseTasks extends FilePhaseHandler implements IPhaseTasks {
     this.tasksPath = tasksPath;
   }
 
-  // TODO: only folders
-  override fileFilter(file: string) {
-    return this.indexof(file) >= 0;
-  }
-
   async loadOrder() {
     const tasksOrderPath = path.join(this.tasksPath, 'task-order.yml');
     try {
       const file = fs.readFileSync(tasksOrderPath, 'utf8');
       const doc = yaml.load(file);
+      if (!Array.isArray(doc)) {
+        throw new Error(
+          `loadOrder: loading order from ${tasksOrderPath}, file must contain an Array of ordered task names`
+        );
+      }
       this.ordering = doc;
     } catch (e) {
       console.log(e);
@@ -48,10 +48,11 @@ export class FilePhaseTasks extends FilePhaseHandler implements IPhaseTasks {
 
   async loadTasks() {
     if (this.tasks.length > 0) return;
+    await this.loadOrder();
     const files = fs.readdirSync(this.tasksPath);
     const useFolders = files.filter((f) => this.fileFilter(f));
     const sortedFolders = useFolders.sort((f1: string, f2: string) => {
-      return this.indexof(f1) <= this.indexof(f2) ? 1 : 0;
+      return this.indexOf(f1) <= this.indexOf(f2) ? 1 : 0;
     });
     for (const folderPath of sortedFolders) {
       const task = this.createTask(folderPath);
