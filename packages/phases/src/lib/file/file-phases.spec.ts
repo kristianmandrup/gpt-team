@@ -19,20 +19,28 @@ describe('FilePhases', () => {
     const workspace: DirectoryJSON = {
       'style.css': 'body: {color: red;}',
     };
-    const configYml = `
+
+    const phasesConfigYml = `
+    order: 
+      - analysis
+`;
+
+    const taskConfigYml = `
 order:
   - use-cases
 `;
 
+    const analysisGoal = `to analyze requirements`;
+
     vol.fromJSON(workspace, process.cwd());
     vol.fromNestedJSON({
       phases: {
-        'phase-order.yml': `- analysis`,
+        '_config.yml': phasesConfigYml,
         analysis: {
-          'phase-tasks': {
-            'task-order.yml': `- use-cases`,
+          '_goal.md': analysisGoal,
+          design: {
+            '_config.yml': taskConfigYml,
             'use-cases.txt': content.useCases,
-            'config.yml': configYml,
           },
         },
       },
@@ -40,11 +48,11 @@ order:
   });
 
   describe('loadOrder', () => {
-    it('should load phases order from phases-order.yml', async () => {
+    it('should load phases order from config.yml', async () => {
       const basePath = process.cwd();
       const phasesPath = path.join(basePath, 'phases');
-      const phases = new FilePhases(phasesPath);
-      expect(async () => await phases.loadOrder()).not.toThrow();
+      const phases = new FilePhases(phasesPath, { loggingOn: true });
+      expect(async () => await phases.loadConfig()).not.toThrow();
       expect(phases.ordering).toEqual(['analysis']);
     });
   });

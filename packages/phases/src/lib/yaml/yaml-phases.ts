@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
-import { IPhases, IPhasesOptionParams } from '../types';
+import { IPhase, IPhases, IPhasesOptionParams } from '../types';
 import { YamlPhase } from './yaml-phase';
 import { BasePhases } from '../base';
 
@@ -32,15 +32,23 @@ export class YamlPhases extends BasePhases implements IPhases {
   async loadPhases() {
     const config: any = await loadYamlFile(this.phasesPath);
     if (!config) return;
+    console.log('loadPhases', { config });
     const { phases } = config;
     if (!phases) {
       console.log('Missing phases in config');
       return;
     }
-    for (const config in phases as any[]) {
-      const phase = this.createPhase(config);
-      this.phases.push(phase);
-    }
+    Object.keys(phases).map((key) => {
+      const phaseConfig: any = phases[key];
+      phaseConfig.name = key;
+      const phase = this.createPhase(phaseConfig);
+      this.addPhase(phase);
+    });
+  }
+
+  addPhase(phase: IPhase) {
+    this.callbacks?.onPhaseAdded && this.callbacks?.onPhaseAdded(phase);
+    this.phases.push(phase);
   }
 
   override async nextPhase() {

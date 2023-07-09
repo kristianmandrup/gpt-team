@@ -10,6 +10,9 @@ export class FilePhaseTask extends BasePhaseTask implements IPhaseTask {
   protected folderPath: string;
   protected config: any;
   protected handler = new FilePhaseHandler();
+  protected taskFilePaths: string[] = [];
+  public loadedConfig = false;
+  protected goalPath: string;
 
   getName(): string {
     return path.parse(this.folderPath).name;
@@ -19,6 +22,13 @@ export class FilePhaseTask extends BasePhaseTask implements IPhaseTask {
     super(opts);
     new FilePhaseHandler(opts);
     this.folderPath = folderPath;
+    this.goalPath = path.join(folderPath, '_goal.md');
+  }
+
+  async loadGoal() {
+    if (this.goal) return;
+    const doc = fs.readFileSync(this.goalPath, 'utf-8');
+    this.goal = doc;
   }
 
   async getConfig() {
@@ -30,12 +40,16 @@ export class FilePhaseTask extends BasePhaseTask implements IPhaseTask {
     return this.phase;
   }
 
-  fileFilter(file: string) {
-    return this.handler.fileFilter(file);
-  }
-
   set ordering(order: any) {
     this.handler.ordering = order;
+  }
+
+  get ordering() {
+    return this.handler.ordering;
+  }
+
+  readFiles(filePath: string) {
+    return this.handler.readFiles(filePath);
   }
 
   indexOf(filePath: string) {
@@ -43,11 +57,13 @@ export class FilePhaseTask extends BasePhaseTask implements IPhaseTask {
   }
 
   async loadConfig() {
-    if (this.config) return;
-    const configPath = path.join(this.folderPath, 'config.yml');
+    if (this.loadedConfig) return;
+    const configPath = path.join(this.folderPath, '_config.yml');
     try {
+      console.log('loadConfig: reading', configPath);
       const file = fs.readFileSync(configPath, 'utf8');
       const doc: any = yaml.load(file);
+      this.loadedConfig = true;
       this.config = doc;
       const order = doc['order'];
       if (!order) {
@@ -67,13 +83,21 @@ export class FilePhaseTask extends BasePhaseTask implements IPhaseTask {
   }
 
   async loadMsgFile(filePath: string) {
-    const fullFilePath = path.join(this.folderPath, filePath);
     try {
-      return fs.readFileSync(fullFilePath, 'utf8');
+      console.log('loadMsgFile: reading', filePath);
+      return fs.readFileSync(filePath, 'utf8');
     } catch (e) {
       console.log(e);
       return;
     }
+  }
+
+  getTaskFilePaths() {
+    const taskFilePaths = this.handler.readFiles(this.folderPath);
+    if (this.ordering.length == 0) return taskFilePaths;
+    return taskFilePaths.sort((f1: string, f2: string) => {
+      return this.indexOf(f1) <= this.indexOf(f2) ? 1 : 0;
+    });
   }
 
   async loadMessages() {
@@ -81,12 +105,9 @@ export class FilePhaseTask extends BasePhaseTask implements IPhaseTask {
       if (this.messages.length > 0) return;
       // includes loading task order
       await this.loadConfig();
-      const files = fs.readdirSync(this.folderPath);
-      const taskFiles = files.filter((f) => this.fileFilter(f));
-      const sortedFiles = taskFiles.sort((f1: string, f2: string) => {
-        return this.indexOf(f1) <= this.indexOf(f2) ? 1 : 0;
-      });
-      for (const filePath of sortedFiles) {
+      const taskFilePaths = this.getTaskFilePaths();
+      this.taskFilePaths = taskFilePaths;
+      for (const filePath of taskFilePaths) {
         const message = await this.loadMsgFile(filePath);
         if (!message) continue;
         this.addMessage(message);

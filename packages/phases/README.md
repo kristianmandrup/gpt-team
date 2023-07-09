@@ -13,7 +13,63 @@ Currently the library comes with two different Phase implementations:
 - Yaml (Reads Phases config from a single Yaml file)
 - File (Reads Phases config from a folder structure with files)
 
-Note that each of these implementations can be combined, to form a hybrid approach by sub-classing any of the implementation classes.
+### File phases loader
+
+The file phases loader expects the following type of file structure.
+
+```bash
+  \phases
+    _config.yml
+    \analysis
+      _goal.md
+      \design
+        _config.yml
+        _goal.md
+        use-cases.txt
+
+```
+
+The phases `_config.yml` file may include `order` and `ignore` entries
+
+```yml
+ignore:
+  - testing
+order:
+  - analysis
+  - development
+  - testing
+```
+
+This tells the Phases handler in which order to process the phases and which phases to be ignored (if any).
+
+The task `_config.yml` may also include `order` and `ignore` entries and will shortly include channel subscription info etc.
+
+The `_goal.md` for a phase explains the goal of the phase. It can be used as an initial `system` message sent to the AI when the phase is started to explain to the AI the overall goal of the development phase.
+
+The `_goal.md` for a tak likewise explains the goal of a task and can also be sent to the AI initially when the task is started.
+
+### Yaml phases loader
+
+This phase loader requires a simple `phases.yaml` file which should contains the full phases and task definitions:
+
+```yml
+phases:
+  analysis:
+    goal: 'analyse project'
+    tasks:
+      design:
+        channels:
+          subscriptions:
+            - ui
+        messages:
+          - hello world
+```
+
+In the near future we may well allow this file to be split up in one yaml file per phase.
+
+### Hybrid loaders
+
+The phase loader implementations can be combined, to form a hybrid approach by sub-classing any of the implementation classes. You can also extend the base classes or implement the interfaces to create your own, loading them from a remote API or DB or perhaps control them using a state machine.
 
 Here is an example:
 

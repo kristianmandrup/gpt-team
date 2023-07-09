@@ -9,6 +9,7 @@ import { BasePhases } from '../base/base-phases';
 export class FilePhases extends BasePhases implements IPhases {
   protected phasesPath: string;
   protected handler: FilePhaseHandler;
+  public loadedConfig = false;
 
   constructor(phasesPath: string, opts: IPhasesOptionParams = {}) {
     super(opts);
@@ -20,29 +21,43 @@ export class FilePhases extends BasePhases implements IPhases {
     return this.handler.ordering;
   }
 
-  set ordering(order: any) {
+  validateArray(name: string, list: any, filePath: string) {
+    if (!Array.isArray(list)) {
+      throw new Error(
+        `loadOrder: loading ${name} from ${filePath}, file must contain an Array of task names`
+      );
+    }
+  }
+
+  setOrder(order: any, filePath: string) {
+    if (!order) return;
+    this.validateArray('order', order, filePath);
     this.handler.ordering = order;
   }
 
-  async loadOrder() {
-    if (this.ordering.length > 0) return;
+  setIgnore(ignore: any, filePath: string) {
+    if (!ignore) return;
+    this.validateArray('ignore', ignore, filePath);
+    this.handler.ignore = ignore;
+  }
+
+  async loadConfig() {
+    console.log('loadConfig');
+    if (this.loadedConfig) return;
     this.log('loading order');
-    const phasesOrderPath = path.join(this.phasesPath, 'phase-order.yml');
+    const filePath = path.join(this.phasesPath, '_config.yml');
     try {
-      const file = fs.readFileSync(phasesOrderPath, 'utf8');
+      const file = fs.readFileSync(filePath, 'utf8');
       const doc: any = yaml.load(file);
-      if (!Array.isArray(doc)) {
-        throw new Error(
-          `loadOrder: loading order from ${phasesOrderPath}, file must contain an Array of ordered task names`
-        );
-      }
-      this.ordering = doc;
-      this.log(`loaded order: ${doc}`);
+      console.log(doc);
+      this.log(`loadConfig: loaded config: ${doc}`);
+      this.loadedConfig = true;
+      const ignore = doc['ignore'];
+      this.setIgnore(ignore, filePath);
+      const order = doc['order'];
+      this.setOrder(order, filePath);
     } catch (e) {
-      console.log(
-        `loadOrder: unable to load phase order from ${phasesOrderPath}`,
-        e
-      );
+      console.log(`loadOrder: unable to load phase order from ${filePath}`, e);
     }
   }
 
@@ -53,17 +68,17 @@ export class FilePhases extends BasePhases implements IPhases {
   async loadPhases() {
     if (this.phases.length > 0) return;
     this.log('loading phases');
-    await this.loadOrder();
-    const sortedFolders = this.handler.sortedFoldersFrom(this.phasesPath);
-    if (!sortedFolders) {
+    await this.loadConfig();
+    const folders = this.handler.foldersFrom(this.phasesPath);
+    if (!folders) {
       throw new Error(
         `loadPhases: No phases folders found for ${this.phasesPath}`
       );
     }
-    if (sortedFolders.length == 0) {
+    if (folders.length == 0) {
       this.log(`loadPhases: No phase folders found for ${this.phasesPath}`);
     }
-    for (const folderPath of sortedFolders) {
+    for (const folderPath of folders) {
       const phase = this.createPhase(folderPath);
       this.addPhase(phase);
     }

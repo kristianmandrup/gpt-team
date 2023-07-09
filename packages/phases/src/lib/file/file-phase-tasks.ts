@@ -6,6 +6,7 @@ import {
   IPhaseTask,
   IPhaseTasks,
   IPhaseTasksOptionParams,
+  PhaseCallbacks,
 } from '../types';
 import { FilePhaseHandler } from './file-phase-handler';
 import { FilePhaseTask } from './file-phase-task';
@@ -16,6 +17,7 @@ export class FilePhaseTasks extends FilePhaseHandler implements IPhaseTasks {
   protected currentTask?: IPhaseTask;
   protected done = false;
   protected phase?: IPhase;
+  protected callbacks?: PhaseCallbacks;
 
   isDone(): boolean {
     return this.done;
@@ -25,26 +27,44 @@ export class FilePhaseTasks extends FilePhaseHandler implements IPhaseTasks {
     return this.phase;
   }
 
-  constructor(tasksPath: string, opts: IPhaseTasksOptionParams) {
+  constructor(tasksPath: string, opts: IPhaseTasksOptionParams = {}) {
     super(opts);
+    this.callbacks = opts.callbacks;
     const { phase } = opts;
     this.phase = phase;
     this.tasksPath = tasksPath;
   }
 
+  validateArray(name: string, list: any, filePath: string) {
+    if (!Array.isArray(list)) {
+      throw new Error(
+        `loadOrder: loading ${name} from ${filePath}, file must contain an Array of task names`
+      );
+    }
+  }
+
+  setOrder(order: any, filePath: string) {
+    if (!order) return;
+    this.validateArray('order', order, filePath);
+    this.ordering = order;
+  }
+
+  setIgnore(ignore: any, filePath: string) {
+    if (!ignore) return;
+    this.validateArray('ignore', ignore, filePath);
+    this.ignore = ignore;
+  }
+
   async loadOrder() {
-    const tasksOrderPath = path.join(this.tasksPath, 'task-order.yml');
-    this.log(`loadOrder: loading from ${tasksOrderPath}`);
+    const filePath = path.join(this.tasksPath, 'config.yml');
+    this.log(`loadOrder: loading from ${filePath}`);
     try {
-      const file = fs.readFileSync(tasksOrderPath, 'utf8');
-      const doc = yaml.load(file);
-      if (!Array.isArray(doc)) {
-        throw new Error(
-          `loadOrder: loading order from ${tasksOrderPath}, file must contain an Array of ordered task names`
-        );
-      }
-      this.ordering = doc;
-      this.log(`loadOrder: loaded task order`);
+      const file = fs.readFileSync(filePath, 'utf8');
+      const doc: any = yaml.load(file);
+      const ignore = doc['ignore'];
+      this.setIgnore(ignore, filePath);
+      const order = doc['order'];
+      this.setOrder(order, filePath);
     } catch (e) {
       this.log(`loadOrder error: ${e}`);
       console.log(e);
@@ -55,11 +75,9 @@ export class FilePhaseTasks extends FilePhaseHandler implements IPhaseTasks {
     return new FilePhaseTask(folderPath, { phase: this.getPhase() });
   }
 
-  async loadTasks() {
-    if (this.tasks.length > 0) return;
-    this.log(`loadTasks`);
-    await this.loadOrder();
+  getFolders() {
     const folders = this.readFolders(this.tasksPath);
+    if (this.ordering.length == 0) return folders;
     const sortedFolders = folders.sort((f1: string, f2: string) => {
       return this.indexOf(f1) <= this.indexOf(f2) ? 1 : 0;
     });
@@ -69,7 +87,15 @@ export class FilePhaseTasks extends FilePhaseHandler implements IPhaseTasks {
     if (sortedFolders.length == 0) {
       this.log(`loadPhases: No task folders found for ${this.tasksPath}`);
     }
-    for (const folderPath of sortedFolders) {
+    return sortedFolders;
+  }
+
+  async loadTasks() {
+    if (this.tasks.length > 0) return;
+    this.log(`loadTasks`);
+    await this.loadOrder();
+    const folders = this.getFolders();
+    for (const folderPath of folders) {
       const task = this.createTask(folderPath);
       this.addTask(task);
     }
@@ -78,6 +104,7 @@ export class FilePhaseTasks extends FilePhaseHandler implements IPhaseTasks {
   addTask(task: IPhaseTask) {
     const name = task.getName && task.getName();
     this.log(`add task ${name}`);
+    this.callbacks?.onTaskAdded && this.callbacks?.onTaskAdded(task);
     this.tasks.push(task);
   }
 

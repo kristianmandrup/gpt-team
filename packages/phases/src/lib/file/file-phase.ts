@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { IPhase, IPhaseOptionParams, IPhases } from '../types';
+import { IPhase, IPhaseOptionParams } from '../types';
 import { FilePhaseHandler } from './file-phase-handler';
 import { FilePhaseTasks } from './file-phase-tasks';
 import { BasePhase } from '../base/base-phase';
@@ -23,8 +23,8 @@ export class FilePhase extends BasePhase implements IPhase {
     super(opts);
     this.handler = new FilePhaseHandler(opts);
     this.folderPath = folderPath;
-    this.goalPath = path.join(this.folderPath, 'goal.md');
-    this.phaseTasksPath = path.join(this.folderPath, 'phase-tasks');
+    this.goalPath = path.join(this.folderPath, '_goal.md');
+    this.phaseTasksPath = path.join(this.folderPath, '.');
     this.phaseTasks = this.createTasks(this.phaseTasksPath);
   }
 
@@ -34,8 +34,12 @@ export class FilePhase extends BasePhase implements IPhase {
 
   async loadGoal() {
     if (this.goal) return;
-    const doc = fs.readFileSync(this.goalPath, 'utf-8');
-    this.goal = doc;
+    try {
+      const doc = fs.readFileSync(this.goalPath, 'utf-8');
+      this.goal = doc;
+    } catch (_) {
+      this.log('no goal file found');
+    }
   }
 
   override async nextTask() {

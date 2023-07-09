@@ -9,7 +9,7 @@ export class YamlPhaseTask extends BasePhaseTask implements IPhaseTask {
   }
 
   async getConfig(): Promise<Record<string, any>> {
-    return this.taskConfig.config;
+    return this.taskConfig;
   }
 
   async getSubscriptionNames(): Promise<string[]> {
@@ -28,7 +28,14 @@ export class YamlPhaseTask extends BasePhaseTask implements IPhaseTask {
   }
 
   async loadMessages() {
-    this.messages = this.taskConfig.messages;
+    const config = await this.getConfig();
+    this.log('loadMessages: loading');
+    const messages = config['messages'];
+    if (!messages) {
+      throw new Error('loadMessages: task config missing messages');
+    }
+    this.messages = messages;
+    this.log('loadMessages: loaded');
   }
 
   override async nextMessage() {

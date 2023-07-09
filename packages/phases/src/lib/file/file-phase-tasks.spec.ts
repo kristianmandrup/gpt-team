@@ -1,11 +1,9 @@
 import * as path from 'path';
 import { DirectoryJSON, vol } from 'memfs';
 import { FilePhaseTasks } from './file-phase-tasks';
-import { FilePhase } from './file-phase';
-import { FilePhases } from './file-phases';
-import { FilePhaseTask } from './file-phase-task';
 
 jest.mock('fs', () => jest.requireActual('memfs'));
+const basePath = process.cwd();
 
 describe('FilePhaseTask', () => {
   const content: any = {
@@ -18,30 +16,37 @@ describe('FilePhaseTask', () => {
     // Create the directory structure
     vol.mkdirSync(path.join(process.cwd()), { recursive: true });
     // set up existing filesystem
-    const workspace: DirectoryJSON = {
-      'style.css': 'body: {color: red;}',
-    };
-    vol.fromJSON(workspace, process.cwd());
-    vol.fromNestedJSON({
+    const phasesConfigYml = `
+    order: 
+      - analysis
+`;
+
+    const taskConfigYml = `
+order:
+  - use-cases
+`;
+    const workspace: any = {
       phases: {
-        'phase-order.yml': `- analysis`,
+        'config.yml': phasesConfigYml,
         analysis: {
           design: {
-            'use-cases.txt': content.useCases,
+            'use-cases.md': content.useCases,
+            'config.yml': taskConfigYml,
           },
         },
       },
-    });
+    };
+
+    vol.fromNestedJSON(workspace, basePath);
   });
 
   it('should process Tasks and read next task from file in folder', async () => {
     const basePath = process.cwd();
-    // const phasesFolderPath = path.join(basePath, 'phases');
-    const phaseFolderPath = path.join(basePath, 'analysis');
+    const phasesFolderPath = path.join(basePath, 'phases');
+    const phaseFolderPath = path.join(phasesFolderPath, 'analysis');
     // const phases = new FilePhases(basePath);
     // const phase = new FilePhase(phases, phaseFolderPath);
-    const tasksFolderPath = path.join(phaseFolderPath, 'design');
-    const tasks = new FilePhaseTasks(tasksFolderPath);
+    const tasks = new FilePhaseTasks(phaseFolderPath, { loggingOn: true });
     const task = await tasks.nextTask();
     if (!task) {
       throw new Error('Missing task in test');

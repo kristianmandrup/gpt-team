@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { DirectoryJSON, vol } from 'memfs';
+import { DirectoryJSON, NestedDirectoryJSON, vol } from 'memfs';
 import { YamlPhases } from './yaml-phases';
 
 jest.mock('fs', () => jest.requireActual('memfs'));
@@ -14,20 +14,26 @@ describe('YamlPhases', () => {
     vol.reset();
     // Create the directory structure
     vol.mkdirSync(path.join(process.cwd()), { recursive: true });
+    const phasesYaml = `
+phases:
+  analysis:
+    goal: 'analyse project'
+    tasks:
+      design:
+        channels:
+          subscriptions: 
+            - ui
+        messages:
+          - hello world           
+    `;
+
     // set up existing filesystem
-    const workspace: DirectoryJSON = {
-      'style.css': 'body: {color: red;}',
-    };
-    vol.fromJSON(workspace, process.cwd());
-    vol.fromNestedJSON({
+    const workspace: NestedDirectoryJSON = {
       phases: {
-        analysis: {
-          design: {
-            'use-cases.txt': content.useCases,
-          },
-        },
+        'phases.yaml': phasesYaml,
       },
-    });
+    };
+    vol.fromNestedJSON(workspace, process.cwd());
   });
 
   it('should process Tasks and read next task from file in folder', async () => {

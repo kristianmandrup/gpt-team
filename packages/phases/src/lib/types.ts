@@ -11,6 +11,7 @@ export interface PhasesCallbacks {
 export interface PhaseCallbacks {
   onDone?: PhaseCallback;
   onTaskDone?: PhaseTaskCallback;
+  onTaskAdded?: PhaseTaskCallback;
 }
 
 export interface PhaseTaskCallbacks {

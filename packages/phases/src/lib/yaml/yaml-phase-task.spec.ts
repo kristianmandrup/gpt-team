@@ -35,6 +35,7 @@ describe('FilePhaseTask', () => {
     const phasesFolderPath = path.join(basePath, 'phases');
     const phases = new YamlPhases(phasesFolderPath);
     const taskConfig = {
+      messages: ['hello world'],
       channel: {
         subscriptions: ['a', 'b'],
       },
