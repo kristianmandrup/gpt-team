@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import * as path from 'path';
 import { BasePhaseTask } from '../base';
 import { IPhase, IPhaseTask, IPhaseTaskOptionParams } from '../types';
@@ -9,6 +10,8 @@ export class YamlPhaseTask extends BasePhaseTask implements IPhaseTask {
   protected fullBasePath?: string;
   protected configFile?: string;
   protected loaded = false;
+  protected goalPath?: string;
+  protected rolePath?: string;
 
   constructor(config: any, opts: IPhaseTaskOptionParams = {}) {
     super(opts);
@@ -17,13 +20,48 @@ export class YamlPhaseTask extends BasePhaseTask implements IPhaseTask {
     this.basePath = basePath;
     this.parentLocation = location;
     this.fullBasePath = location ? path.join(basePath, location) : basePath;
+    this.goalPath = this.fullBasePath
+      ? path.join(this.fullBasePath, '_goal.md')
+      : undefined;
     this.config = config;
+    this.rolePath = this.fullBasePath
+      ? path.join(this.fullBasePath, '_role.md')
+      : undefined;
+    this.config = config;
+
     this.configFile = config.configFile;
   }
 
   async getConfig(): Promise<Record<string, any>> {
-    await this.loadFromConfigFile();
+    await this.loadAll();
     return this.config;
+  }
+
+  async loadAll() {
+    await this.loadGoal();
+    await this.loadRole();
+    await this.loadFromConfigFile();
+  }
+
+  async loadRole() {
+    if (this.role) return;
+    try {
+      if (!this.rolePath) return;
+      const doc = fs.readFileSync(this.rolePath, 'utf-8');
+      this.role = doc;
+    } catch (_) {
+      this.log('no role file found');
+    }
+  }
+  async loadGoal() {
+    if (this.goal) return;
+    try {
+      if (!this.goalPath) return;
+      const doc = fs.readFileSync(this.goalPath, 'utf-8');
+      this.goal = doc;
+    } catch (e) {
+      console.log(`loadGoal: unable to load goal file from ${this.goalPath}`);
+    }
   }
 
   async loadFromConfigFile(filePath?: string) {

@@ -21,28 +21,28 @@ export interface PhaseTaskCallbacks {
 export interface IPhasesOptionParams {
   loggingOn?: boolean;
   callbacks?: PhasesCallbacks;
-  meta?: any
+  meta?: any;
 }
 
 export interface IPhaseTasksOptionParams {
   loggingOn?: boolean;
   phase?: IPhase;
   callbacks?: PhaseCallbacks;
-  meta?: any
+  meta?: any;
 }
 
 export interface IPhaseOptionParams {
   loggingOn?: boolean;
   phases?: IPhases;
   callbacks?: PhaseCallbacks;
-  meta?: any
+  meta?: any;
 }
 
 export interface IPhaseTaskOptionParams {
   loggingOn?: boolean;
   phase?: IPhase;
   callbacks?: PhaseTaskCallbacks;
-  meta?: any
+  meta?: any;
 }
 
 export interface IPhases {
@@ -55,7 +55,8 @@ export interface IPhases {
 }
 export interface IPhase {
   getName?(): string;
-  getGoal?(): string;
+  getGoal?(): string | undefined;
+  getRole?(): string | undefined;
   onTaskDone?: PhaseTaskCallback;
   getPhases?: () => IPhases | undefined;
   isDone(): boolean;
@@ -70,7 +71,8 @@ export interface IPhaseTasks {
 }
 export interface IPhaseTask {
   getName?(): string;
-  getGoal?(): string;
+  getGoal?(): string | undefined;
+  getRole?(): string | undefined;
   isDone(): boolean;
   setDone(): void;
   getPhase?: () => IPhase | undefined;

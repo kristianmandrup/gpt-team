@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import * as path from 'path';
 import { BasePhase } from '../base';
 import { IPhase, IPhaseOptionParams, IPhaseTask } from '../types';
@@ -7,6 +8,7 @@ import { YamlPhaseTask } from './yaml-phase-task';
 export class YamlPhase extends BasePhase implements IPhase {
   protected basePath: string;
   protected fullBasePath: string;
+  protected goalPath?: string;
   protected location?: string;
   protected parentLocation?: string;
   protected fullLocation?: string;
@@ -31,11 +33,21 @@ export class YamlPhase extends BasePhase implements IPhase {
       ? path.join(basePath, fullLocation)
       : basePath;
     this.fullBasePath = fullBasePath;
+    this.goalPath = this.fullBasePath
+      ? path.join(this.fullBasePath, '_goal.md')
+      : undefined;
+
     this.configFilePath = config['configFile'];
+  }
+
+  async loadAll() {
+    await this.loadGoal();
+    await this.loadFromConfigFile();
   }
 
   async loadFromConfigFile(filePath?: string) {
     if (this.loaded) return;
+    // await this.loadRole();
     this.log('loadFromConfigFile: loading');
     try {
       filePath = filePath || this.configFilePath;
@@ -76,7 +88,14 @@ export class YamlPhase extends BasePhase implements IPhase {
   }
 
   async loadGoal() {
-    this.goal = this.config.goal;
+    if (this.goal) return;
+    try {
+      if (!this.goalPath) return;
+      const doc = fs.readFileSync(this.goalPath, 'utf-8');
+      this.goal = doc;
+    } catch (e) {
+      console.log(`loadGoal: unable to load goal file from ${this.goalPath}`);
+    }
   }
 
   createTask(config: any) {
@@ -98,7 +117,7 @@ export class YamlPhase extends BasePhase implements IPhase {
 
   async loadTasks() {
     if (this.tasksLoaded) return;
-    await this.loadFromConfigFile();
+    await this.loadAll();
     this.log('loadTasks: loading');
     let taskConfigs: any = this.getTaskConfigs();
     this.validateTaskConfigs(taskConfigs);

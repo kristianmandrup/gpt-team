@@ -63,7 +63,9 @@ channels:
 
 The `_goal.md` for a phase explains the goal of the phase. It can be used as an initial `system` message sent to the AI when the phase is started to explain to the AI the overall goal of the development phase.
 
-The `_goal.md` for a tak likewise explains the goal of a task and can also be sent to the AI initially when the task is started.
+The `_role.md` for a phase explains the role of actors in the phase. It can be used in a similar way to goal.
+
+The `_goal.md` and `_role.md` for a task likewise can be sent to the AI initially when the task is started. If no goal or role can be found for a task it will default to the goal or role of the phase.
 
 ### Yaml phases loader
 

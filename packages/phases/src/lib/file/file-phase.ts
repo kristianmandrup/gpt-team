@@ -10,6 +10,7 @@ export class FilePhase extends BasePhase implements IPhase {
   protected folderPath: string;
   protected phaseTasksPath: string;
   protected goalPath: string;
+  protected rolePath: string;
   protected handler: FilePhaseHandler;
 
   createTasks(phaseTasksPath: string = this.phaseTasksPath) {
@@ -24,6 +25,7 @@ export class FilePhase extends BasePhase implements IPhase {
     this.handler = new FilePhaseHandler(opts);
     this.folderPath = folderPath;
     this.goalPath = path.join(this.folderPath, '_goal.md');
+    this.rolePath = path.join(this.folderPath, '_role.md');
     this.phaseTasksPath = path.join(this.folderPath, '.');
     this.phaseTasks = this.createTasks(this.phaseTasksPath);
   }
@@ -35,6 +37,7 @@ export class FilePhase extends BasePhase implements IPhase {
   async loadGoal() {
     if (this.goal) return;
     try {
+      if (!this.goalPath) return;
       const doc = fs.readFileSync(this.goalPath, 'utf-8');
       this.goal = doc;
     } catch (_) {
@@ -42,7 +45,24 @@ export class FilePhase extends BasePhase implements IPhase {
     }
   }
 
+  async loadRole() {
+    if (this.role) return;
+    try {
+      if (!this.rolePath) return;
+      const doc = fs.readFileSync(this.rolePath, 'utf-8');
+      this.role = doc;
+    } catch (_) {
+      this.log('no role file found');
+    }
+  }
+
+  async loadAll() {
+    await this.loadGoal();
+    await this.loadRole();
+  }
+
   override async nextTask() {
+    await this.loadAll();
     await this.phaseTasks.loadTasks();
     if (this.phaseTasks.isDone()) {
       this.setCompleted();

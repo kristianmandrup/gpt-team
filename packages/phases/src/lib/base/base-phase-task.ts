@@ -13,15 +13,16 @@ export abstract class BasePhaseTask implements IPhaseTask {
   protected phase?: IPhase;
   protected current?: IPhaseTask;
   protected done = false;
-  protected goal = '';
+  protected goal?: string;
+  protected role?: string;
   protected name = 'noname';
   protected loggingOn = false;
-  protected ordering = []
-  protected ignored = []    
-  protected channels = {}
-  protected subscriptions = []
-  protected recipients = []  
-  protected listHandler?: ListHandler
+  protected ordering = [];
+  protected ignored = [];
+  protected channels = {};
+  protected subscriptions = [];
+  protected recipients = [];
+  protected listHandler?: ListHandler;
 
   constructor({ loggingOn, phase, callbacks }: IPhaseTaskOptionParams) {
     this.callbacks = callbacks;
@@ -30,7 +31,7 @@ export abstract class BasePhaseTask implements IPhaseTask {
   }
 
   createListHandler(config: any) {
-    return new ListHandler(config)
+    return new ListHandler(config);
   }
 
   validateList(list: any, label: string) {
@@ -38,28 +39,32 @@ export abstract class BasePhaseTask implements IPhaseTask {
       throw new Error(
         `${label} entry must contain an Array of phase task names`
       );
-    }    
+    }
   }
 
   parseOrderAndIgnore(config: any) {
     // order
     const order = config['order'];
-    this.validateList(order, 'order')
+    this.validateList(order, 'order');
     this.ordering = order || [];
     // ignore
     const ignore = config['ignore'];
-    this.validateList(ignore, 'ignore')      
-    this.ignored = ignore || []      
+    this.validateList(ignore, 'ignore');
+    this.ignored = ignore || [];
   }
 
   parseConfig() {
     const channels = this.config['channels'] || {};
     const name = this.config['name'];
-    this.channels = channels
-    const { subscriptions, recipients } = channels
-    this.subscriptions = subscriptions
-    this.recipients = recipients
-    this.name = name
+    const goal = this.config['goal'];
+    const role = this.config['role'];
+    this.channels = channels;
+    const { subscriptions, recipients } = channels;
+    this.subscriptions = subscriptions;
+    this.recipients = recipients;
+    this.name = name;
+    this.goal = this.goal || goal;
+    this.role = this.role || role;
   }
 
   getName(): string {
@@ -67,12 +72,12 @@ export abstract class BasePhaseTask implements IPhaseTask {
   }
 
   getRecipients(): string[] {
-    return this.recipients
+    return this.recipients;
   }
 
   getSubscriptions(): string[] {
-    return this.subscriptions
-  }  
+    return this.subscriptions;
+  }
 
   log(msg: string) {
     if (!this.loggingOn) return;
@@ -83,8 +88,20 @@ export abstract class BasePhaseTask implements IPhaseTask {
     this.messages.push(message);
   }
 
-  getGoal(): string {
+  getParentGoal() {
+    return this.phase?.getGoal && this.phase?.getGoal();
+  }
+
+  getGoal() {
     return this.goal;
+  }
+
+  getParentRole() {
+    return this.phase?.getRole && this.phase?.getRole();
+  }
+
+  getRole() {
+    return this.role || this.getParentGoal();
   }
 
   isDone(): boolean {

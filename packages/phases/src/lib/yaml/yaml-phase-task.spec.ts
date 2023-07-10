@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { DirectoryJSON, NestedDirectoryJSON, vol } from 'memfs';
+import { NestedDirectoryJSON, vol } from 'memfs';
 import { YamlPhaseTask } from './yaml-phase-task';
 import { YamlPhase } from './yaml-phase';
 import { YamlPhases } from './yaml-phases';
@@ -10,7 +10,6 @@ describe('FilePhaseTask', () => {
   const content: any = {
     useCases: 'hello world',
   };
-
 
   beforeEach(() => {
     // Reset the in-memory file system before each test

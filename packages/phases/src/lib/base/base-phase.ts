@@ -14,7 +14,8 @@ export abstract class BasePhase implements IPhase {
   protected currentTask?: IPhaseTask;
   protected done = false;
   protected callbacks?: PhaseCallbacks;
-  protected goal = '';
+  protected goal?: string;
+  protected role?: string;
   protected loggingOn = false;
   protected name = 'noname';
   protected listHandler?: ListHandler;
@@ -34,8 +35,12 @@ export abstract class BasePhase implements IPhase {
     console.log(msg);
   }
 
-  getGoal(): string {
+  getGoal() {
     return this.goal;
+  }
+
+  getRole() {
+    return this.role;
   }
 
   isDone(): boolean {
