@@ -111,9 +111,14 @@ export class FilePhaseTask extends BasePhaseTask implements IPhaseTask {
       });
       taskFilePaths = this.listHandler.ordered(taskFilePaths);
       this.taskFilePaths = taskFilePaths;
+      const group = this.listHandler.group(taskFilePaths);
+      const pathToGroupMap = this.listHandler.invertedGroup(group);
       for (const filePath of taskFilePaths) {
         const message = await this.loadMsgFile(filePath);
         if (!message) continue;
+        const name = path.parse(filePath).name;
+        const groupName = pathToGroupMap[name];
+        this.addMessageToGroup(groupName, message);
         this.addMessage(message);
       }
     } catch (e) {
@@ -123,6 +128,22 @@ export class FilePhaseTask extends BasePhaseTask implements IPhaseTask {
       );
       return;
     }
+  }
+
+  addMessageToGroup(groupName: string, message: string) {
+    if (groupName && message) {
+      this.messageMap[groupName] = this.messageMap[groupName] || [];
+      this.messageMap[groupName].push(message);
+    }
+  }
+
+  async nextMessageOf(type: string) {
+    await this.loadMessages();
+    if (!this.messageMap[type]) {
+      return;
+    }
+    const msg = this.messageMap[type].shift();
+    return msg;
   }
 
   override async nextMessage() {

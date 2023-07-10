@@ -48,15 +48,14 @@ The task `_config.yml` may also include `order` and `ignore` entries and in addi
 ignore:
   - testing
 order:
-  - analysis
-  - development
-  - testing
+  - use-cases
+  - design
 channels:
   subscriptions:
     - info
     - ui
     - all
-  receipients:
+  recipients:
     - all
     - development
 ```
@@ -66,6 +65,24 @@ The `_goal.md` for a phase explains the goal of the phase. It can be used as an 
 The `_role.md` for a phase explains the role of actors in the phase. It can be used in a similar way to goal.
 
 The `_goal.md` and `_role.md` for a task likewise can be sent to the AI initially when the task is started. If no goal or role can be found for a task it will default to the goal or role of the phase.
+
+Messages can be grouped by adding the `groups` entry to the config file:
+
+```yml
+ignore:
+  - testing
+order:
+  - actors
+  - use-cases
+groups:
+  system:
+    - how-to-work
+  user:
+    - ask-for-use-cases
+  critique:
+    - critique-actors
+    - critique-use-cases
+```
 
 ### Yaml phases loader
 
@@ -90,13 +107,38 @@ phases:
         channels:
           subscriptions:
             - ui
-          receipients:
+          recipients:
             - all
             - development
         messages:
-          - hello world
+          - ...
+
   development:
     configFile: development.yml
+```
+
+### Task messages
+
+For a task you can simply list your messages in a flat list
+
+```yml
+messages:
+  - Your job is to create code that generates UML diagrams for PlantUML
+  - Generate a Use case diagram with main actors
+```
+
+Alternatively you can group messages as per their use
+
+```yml
+messages:
+  system:
+    - Your job is to create code that generates UML diagrams for PlantUML
+  user:
+    - Generate a Use case diagram with main actors
+  critique:
+    - Expand the use case diagrams with more details
+    - Are there any cases missing?
+    - Do the use cases fulfill all the requirements? If not, expand the uses cases further
 ```
 
 The yaml file can be split into multiple smaller files using `location`and `configFile` entries as shown in the example above.

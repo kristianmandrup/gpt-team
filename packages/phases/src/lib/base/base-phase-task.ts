@@ -10,6 +10,7 @@ export abstract class BasePhaseTask implements IPhaseTask {
   protected config: any;
   protected callbacks?: PhaseTaskCallbacks;
   protected messages: string[] = [];
+  protected messageMap: Record<string, string[]> = {};
   protected phase?: IPhase;
   protected current?: IPhaseTask;
   protected done = false;

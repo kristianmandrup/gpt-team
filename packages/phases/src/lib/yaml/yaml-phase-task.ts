@@ -99,8 +99,21 @@ export class YamlPhaseTask extends BasePhaseTask implements IPhaseTask {
     if (!messages) {
       throw new Error('loadMessages: task config missing messages');
     }
-    this.messages = messages;
+    if (Array.isArray(messages)) {
+      this.messages = messages;
+    } else {
+      this.messageMap = messages;
+    }
     this.log('loadMessages: loaded');
+  }
+
+  async nextMessageOf(type: string) {
+    await this.loadMessages();
+    if (!this.messageMap[type]) {
+      return;
+    }
+    const msg = this.messageMap[type].shift();
+    return msg;
   }
 
   override async nextMessage() {
