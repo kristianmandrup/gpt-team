@@ -1,26 +1,33 @@
+import * as path from 'path';
 import { BasePhase } from '../base';
 import { IPhase, IPhaseOptionParams, IPhaseTask } from '../types';
-import { YamlHandler, loadYamlFile } from './yaml-handler';
+import { loadYamlFile } from './yaml-handler';
 import { YamlPhaseTask } from './yaml-phase-task';
+import { ListHandler } from '../list-handler';
 
 export class YamlPhase extends BasePhase implements IPhase {
   protected config: any = {};
   protected location?: string
-  protected handler?: YamlHandler
-  protected configFile?: string
+  protected parentLocation?: string
+  protected fullLocation?: string
+  protected configFilePath?: string
   protected loaded = false
 
   constructor(config: any, opts: IPhaseOptionParams) {
     super(opts);
-    this.location = opts.meta?.location
+    this.parentLocation = opts.meta?.parentLocation
     this.config = config;
-    this.configFile = config.configFile
+    const location = config['location']
+    this.location = location
+    this.fullLocation = this.parentLocation ? path.join(this.parentLocation, location) : location;
+    const configFilePath = config.configFile
+    this.configFilePath = this.fullLocation ? path.join(this.fullLocation, configFilePath) : configFilePath
   }
 
   async loadFromConfigFile(filePath?: string) {
     if (this.loaded) return
     try {
-      filePath= filePath || this.configFile
+      filePath= filePath || this.configFilePath
       if (!filePath) return
       const config: any = await loadYamlFile(filePath);
       if (!config) return;
@@ -53,7 +60,10 @@ export class YamlPhase extends BasePhase implements IPhase {
   }
 
   createTask(config: any) {
-    return new YamlPhaseTask(config, { phase: this });
+    const meta = {
+      location: this.location
+    }
+    return new YamlPhaseTask(config, { meta, phase: this });
   }
 
   validateTaskConfigs(taskConfigs: any) {
@@ -65,17 +75,13 @@ export class YamlPhase extends BasePhase implements IPhase {
     }
   }
 
-  createHandler(config: any) {
-    return new YamlHandler(config)
-  }
-
   async loadTasks() {
     await this.loadFromConfigFile()
     this.log('loadTasks: loading');
     let taskConfigs: any = this.getTasks();
     this.validateTaskConfigs(taskConfigs);
-    this.handler = this.createHandler(taskConfigs)
-    taskConfigs = this.handler.prepare(taskConfigs)
+    this.listHandler = this.createListHandler(taskConfigs)
+    taskConfigs = this.listHandler.prepare(taskConfigs)
     this.iterate(taskConfigs)
     this.log('loadTasks: loaded');
   }

@@ -1,3 +1,4 @@
+import { ListHandler } from '../list-handler';
 import {
   IPhase,
   IPhaseOptionParams,
@@ -15,11 +16,16 @@ export abstract class BasePhase implements IPhase {
   protected goal = '';
   protected loggingOn = false;
   protected name = 'noname';
+  protected listHandler?: ListHandler
 
   constructor({ loggingOn, phases, callbacks }: IPhaseOptionParams) {
     this.callbacks = callbacks;
     this.phases = phases;
     this.loggingOn = Boolean(loggingOn);
+  }
+
+  createListHandler(config: any) {
+    return new ListHandler(config)
   }
 
   log(msg: string) {

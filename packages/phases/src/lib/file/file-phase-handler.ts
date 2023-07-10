@@ -4,7 +4,7 @@ import * as path from 'path';
 export class FilePhaseHandler {
   public folders: string[] = [];
   public ordering: string[] = [];
-  public ignore: string[] = [];
+  public ignored: string[] = [];
   protected loggingOn = false;
 
   constructor({ loggingOn }: any = {}) {
@@ -61,8 +61,8 @@ export class FilePhaseHandler {
   }
 
   ignoreFolders() {
-    if (this.ignore.length == 0) return this.folders;
-    return this.folders.filter((f) => this.ignore.includes(path.parse(f).name));
+    if (this.ignored.length == 0) return this.folders;
+    return this.folders.filter((f) => this.ignored.includes(path.parse(f).name));
   }
 
   orderedFolders() {

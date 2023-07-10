@@ -3,29 +3,19 @@ import { IPhase, IPhaseTask, IPhaseTaskOptionParams } from '../types';
 import { loadYamlFile } from './yaml-handler';
 
 export class YamlPhaseTask extends BasePhaseTask implements IPhaseTask {
-  protected taskConfig: any = {};
   protected configFile?: string
   protected loaded = false
 
-  constructor(taskConfig: any, opts: IPhaseTaskOptionParams) {
-    super(opts);
-    this.taskConfig = taskConfig;
-    this.configFile = taskConfig.configFile
-  }
 
-  getName(): string {
-    return this.taskConfig.name;
+  constructor(config: any, opts: IPhaseTaskOptionParams) {
+    super(opts);
+    this.config = config;
+    this.configFile = config.configFile
   }
 
   async getConfig(): Promise<Record<string, any>> {
     await this.loadFromConfigFile()
-    return this.taskConfig;
-  }
-
-  async getSubscriptionNames(): Promise<string[]> {
-    const config = await this.getConfig();
-    const { subscriptions } = config['channels'] || {};
-    return subscriptions || [];
+    return this.config;
   }
 
   async loadFromConfigFile(filePath?: string) {
@@ -35,10 +25,11 @@ export class YamlPhaseTask extends BasePhaseTask implements IPhaseTask {
       if (!filePath) return
       const config: any = await loadYamlFile(filePath);
       if (!config) return;
-      this.taskConfig = {
-        ...this.taskConfig,
+      this.config = {
+        ...this.config,
         ...config
       }
+      this.parseConfig()
       this.loaded = true
     } catch (e) {
       this.log(`loadYamlFile: error loading file ${filePath}`);
