@@ -2,12 +2,13 @@ import * as path from 'path';
 import { IPhase, IPhases, IPhasesOptionParams } from '../types';
 import { YamlPhase } from './yaml-phase';
 import { BasePhases } from '../base';
-import { YamlHandler, loadYamlFile } from './yaml-handler';
+import { loadYamlFile } from './yaml-handler';
+import { ListHandler } from '../list-handler';
 
 export class YamlPhases extends BasePhases implements IPhases {
   protected basePath: string;
   protected phasesPath: string;
-  protected handler?: YamlHandler
+  protected handler?: ListHandler
   protected location?: string
 
   constructor(basePath: string, opts: IPhasesOptionParams = {}) {
@@ -31,7 +32,7 @@ export class YamlPhases extends BasePhases implements IPhases {
   }
 
   createHandler(config: any) {
-    return new YamlHandler(config)
+    return new ListHandler(config)
   }
 
   async loadPhases() {

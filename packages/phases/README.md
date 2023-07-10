@@ -42,7 +42,24 @@ order:
 
 This tells the Phases handler in which order to process the phases and which phases to be ignored (if any).
 
-The task `_config.yml` may also include `order` and `ignore` entries and will shortly include channel subscription info etc.
+The task `_config.yml` may also include `order` and `ignore` entries and in addition may include channel subscription info.
+
+```yml
+ignore:
+  - testing
+order:
+  - analysis
+  - development
+  - testing
+channels:
+  subscriptions:
+    - info
+    - ui
+    - all
+  receipients:
+    - all
+    - development
+```
 
 The `_goal.md` for a phase explains the goal of the phase. It can be used as an initial `system` message sent to the AI when the phase is started to explain to the AI the overall goal of the development phase.
 
@@ -71,6 +88,9 @@ phases:
         channels:
           subscriptions:
             - ui
+          receipients:
+            - all
+            - development
         messages:
           - hello world
   development:

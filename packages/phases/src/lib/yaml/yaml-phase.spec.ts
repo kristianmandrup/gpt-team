@@ -1,16 +1,14 @@
 import * as path from 'path';
-import { DirectoryJSON, NestedDirectoryJSON, vol } from 'memfs';
-import { YamlPhaseTask } from './yaml-phase-task';
-import { YamlPhase } from './yaml-phase';
+import { NestedDirectoryJSON, vol } from 'memfs';
 import { YamlPhases } from './yaml-phases';
+import { YamlPhase } from './yaml-phase';
 
 jest.mock('fs', () => jest.requireActual('memfs'));
 
-describe('FilePhaseTask', () => {
+describe('YamlPhase', () => {
   const content: any = {
     useCases: 'hello world',
   };
-
 
   beforeEach(() => {
     // Reset the in-memory file system before each test
@@ -39,7 +37,7 @@ phases:
     vol.fromNestedJSON(workspace, process.cwd());
   });
 
-  it('should read task from file', async () => {
+  it('should process Tasks and read next task from file in folder', async () => {
     const basePath = process.cwd();
     const phasesFolderPath = path.join(basePath, 'phases');
     const phases = new YamlPhases(phasesFolderPath);
@@ -53,7 +51,16 @@ phases:
       analysis: taskConfig,
     };
     const phase = new YamlPhase(phaseConfig, { phases });
-    const task = new YamlPhaseTask(taskConfig, { phase });
+    if (!phase) {
+      throw new Error('Missing phase in test');
+    }
+    const task = await phase?.nextTask();
+    if (!task) {
+      throw new Error('Missing task in test');
+    }
+    if (!task) {
+      throw new Error('Missing task in test');
+    }
     const message = await task.nextMessage();
 
     // Check that the message matches task file
