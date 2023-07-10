@@ -3,6 +3,7 @@ import { NestedDirectoryJSON, vol } from 'memfs';
 import { YamlPhaseTask } from './yaml-phase-task';
 import { YamlPhase } from './yaml-phase';
 import { YamlPhases } from './yaml-phases';
+import { IPhaseTask } from '../types';
 
 jest.mock('fs', () => jest.requireActual('memfs'));
 
@@ -27,6 +28,11 @@ phases:
             - ui
         messages:
           - hello world           
+      develop:
+        messages:
+          system:
+            - implement the system           
+
     `;
 
     // set up existing filesystem
@@ -38,24 +44,48 @@ phases:
     vol.fromNestedJSON(workspace, process.cwd());
   });
 
-  it('should read task from file', async () => {
-    const basePath = process.cwd();
-    const phasesFolderPath = path.join(basePath, 'phases');
-    const phases = new YamlPhases(phasesFolderPath);
-    const taskConfig = {
-      messages: ['hello world'],
-      channel: {
-        subscriptions: ['a', 'b'],
-      },
-    };
-    const phaseConfig = {
-      analysis: taskConfig,
-    };
-    const phase = new YamlPhase(phaseConfig, { phases });
-    const task = new YamlPhaseTask(taskConfig, { phase });
-    const message = await task.nextMessage();
+  describe('task', () => {
+    let task: IPhaseTask;
+    beforeAll(() => {
+      const basePath = process.cwd();
+      const phasesFolderPath = path.join(basePath, 'phases');
+      const phases = new YamlPhases(phasesFolderPath);
+      const taskConfig = {
+        messages: ['hello world'],
+        channel: {
+          subscriptions: ['a', 'b'],
+        },
+      };
+      const phaseConfig = {
+        analysis: taskConfig,
+      };
+      const phase = new YamlPhase(phaseConfig, { phases });
+      task = new YamlPhaseTask(taskConfig, { phase });
+    });
 
-    // Check that the message matches task file
-    expect(message).toEqual(content.useCases);
+    describe('nextMessage', () => {
+      it('should read task from file', async () => {
+        const message = await task.nextMessage();
+
+        // Check that the message matches task file
+        expect(message).toEqual(content.useCases);
+      });
+    });
+
+    describe('nextMessageOf', () => {
+      it('should read task from file', async () => {
+        const taskConfig = {
+          messages: {
+            system: ['system implement'],
+          },
+        };
+        task = new YamlPhaseTask(taskConfig);
+
+        const message = await task.nextMessageOf('system');
+
+        // Check that the message matches task file
+        expect(message).toEqual('system implement');
+      });
+    });
   });
 });

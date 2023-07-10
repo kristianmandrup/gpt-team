@@ -79,6 +79,7 @@ export interface IPhaseTask {
   addMessage?: (message: string) => void;
   loadMessages?: () => Promise<void>;
   nextMessage: () => Promise<string | undefined>;
+  nextMessageOf: (type: string) => Promise<string | undefined>;
   getSubscriptions?: () => string[];
   getRecipients?: () => string[];
   getConfig?: () => Promise<any>;

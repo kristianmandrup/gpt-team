@@ -119,6 +119,14 @@ export abstract class BasePhaseTask implements IPhaseTask {
     this.phase?.onTaskDone && this.phase?.onTaskDone(this);
   }
 
+  async nextMessageOf(type: string) {
+    if (!this.messageMap[type]) {
+      return;
+    }
+    const msg = this.messageMap[type].shift();
+    return msg;
+  }
+
   async nextMessage() {
     if (this.isDone()) return;
     if (!this.current) {

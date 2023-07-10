@@ -137,7 +137,7 @@ export class FilePhaseTask extends BasePhaseTask implements IPhaseTask {
     }
   }
 
-  async nextMessageOf(type: string) {
+  override async nextMessageOf(type: string) {
     await this.loadMessages();
     if (!this.messageMap[type]) {
       return;

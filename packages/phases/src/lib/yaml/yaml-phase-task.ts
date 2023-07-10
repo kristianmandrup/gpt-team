@@ -107,7 +107,7 @@ export class YamlPhaseTask extends BasePhaseTask implements IPhaseTask {
     this.log('loadMessages: loaded');
   }
 
-  async nextMessageOf(type: string) {
+  override async nextMessageOf(type: string) {
     await this.loadMessages();
     if (!this.messageMap[type]) {
       return;

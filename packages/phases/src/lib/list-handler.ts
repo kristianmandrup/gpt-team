@@ -56,7 +56,7 @@ export class ListHandler {
 
   invertedGroup(group: any) {
     return Object.keys(group).reduce((acc: any, key: string) => {
-      const list = group[key];
+      const list = group[key] || [];
       for (const item of list) {
         acc[item] = key;
       }
