@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { DirectoryJSON, NestedDirectoryJSON, vol } from 'memfs';
+import { NestedDirectoryJSON, vol } from 'memfs';
 import { YamlPhases } from './yaml-phases';
 
 jest.mock('fs', () => jest.requireActual('memfs'));
