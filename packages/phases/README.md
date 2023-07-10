@@ -117,6 +117,36 @@ phases:
     configFile: development.yml
 ```
 
+### Groups and parallel execution
+
+You can even design phase groups and task groups which can be made to be processed in parallel using `Promise.all()`
+
+```yml
+order:
+  - analysis
+  - development
+location: phases
+groups
+  - [analysis, design]
+  - [development, testing]
+phases:
+  analysis:
+    groups:
+      - [use-cases, state-diagrams]
+    tasks:
+      use-cases:
+        - ...
+      state-diagrams:
+        - ...
+
+  design:
+    - ...
+  development:
+    - ...
+  testing:
+    - ...
+```
+
 ### Task messages
 
 For a task you can simply list your messages in a flat list

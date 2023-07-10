@@ -1,5 +1,6 @@
 import {
   IPhase,
+  IPhaseGroup,
   IPhaseTask,
   IPhases,
   IPhasesOptionParams,
@@ -8,7 +9,9 @@ import {
 
 export abstract class BasePhases implements IPhases {
   protected phases: IPhase[] = [];
+  protected phaseGroups: IPhaseGroup[] = [];
   protected currentPhase?: IPhase;
+  protected currentPhaseGroup?: IPhaseGroup;
   protected currentTask?: IPhaseTask;
   protected done = false;
   protected callbacks?: PhasesCallbacks;
@@ -39,6 +42,14 @@ export abstract class BasePhases implements IPhases {
 
   onTaskDone(task: IPhaseTask) {
     this.callbacks?.onTaskDone && this.callbacks?.onTaskDone(task);
+  }
+
+  async nextPhaseGroup() {
+    this.currentPhaseGroup = this.phaseGroups.shift();
+    if (!this.currentPhaseGroup) {
+      this.setCompleted();
+    }
+    return this.currentPhaseGroup;
   }
 
   async nextPhase() {

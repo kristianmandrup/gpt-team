@@ -4,12 +4,14 @@ import { YamlPhase } from './yaml-phase';
 import { BasePhases } from '../base';
 import { loadYamlFile } from './yaml-handler';
 import { ListHandler } from '../list-handler';
+import { PhaseGroup } from '../phase-group';
 
 export class YamlPhases extends BasePhases implements IPhases {
   protected basePath: string;
   protected phasesPath: string;
-  protected handler?: ListHandler;
+  protected listHandler?: ListHandler;
   protected location?: string;
+  protected groups: string[][] = [];
 
   constructor(basePath: string, opts: IPhasesOptionParams = {}) {
     super(opts);
@@ -32,7 +34,7 @@ export class YamlPhases extends BasePhases implements IPhases {
     }
   }
 
-  createHandler(config: any) {
+  createListHandler(config: any) {
     return new ListHandler(config);
   }
 
@@ -43,18 +45,45 @@ export class YamlPhases extends BasePhases implements IPhases {
     try {
       const config: any = await loadYamlFile(filePath);
       if (!config) return;
-      phaseConfigs = config['phases'];
-      this.validatePhasesConfigs(phaseConfigs);
+      phaseConfigs = this.setPhaseConfig(config);
       this.location = config['location'];
-      this.handler = this.createHandler(config);
+      this.setGroups(config);
+      this.listHandler = this.createListHandler(config);
     } catch (e) {
       this.log(`loadYamlFile: error loading file ${filePath}`);
       return;
     }
     // add key as name to each phase, ignore then order list
-    phaseConfigs = this.handler.prepare(phaseConfigs);
+    phaseConfigs = this.listHandler.prepare(phaseConfigs);
     this.iterate(phaseConfigs);
+    this.iterateGroups();
     this.log('loadPhases: loaded');
+  }
+
+  setPhaseConfig(config: any) {
+    const phaseConfigs = config['phases'];
+    this.validatePhasesConfigs(phaseConfigs);
+    return phaseConfigs;
+  }
+
+  setGroups(config: any) {
+    const groups = config['groups'];
+    if (!groups) return;
+    if (!Array.isArray(groups)) {
+      throw new Error('Invalid groups entry');
+    }
+    this.groups = groups;
+  }
+
+  iterateGroups() {
+    for (const group of this.groups) {
+      const phaseGroup = new PhaseGroup();
+      for (const config of group) {
+        const phase = this.createPhase(config);
+        phaseGroup.addPhase(phase);
+      }
+      this.phaseGroups.push(phaseGroup);
+    }
   }
 
   iterate(phaseConfigs: any) {
@@ -67,6 +96,15 @@ export class YamlPhases extends BasePhases implements IPhases {
   addPhase(phase: IPhase) {
     this.callbacks?.onPhaseAdded && this.callbacks?.onPhaseAdded(phase);
     this.phases.push(phase);
+  }
+
+  override async nextPhaseGroup() {
+    await this.loadPhases();
+    this.currentPhaseGroup = this.phaseGroups.shift();
+    if (!this.currentPhaseGroup) {
+      this.setCompleted();
+    }
+    return this.currentPhaseGroup;
   }
 
   override async nextPhase() {

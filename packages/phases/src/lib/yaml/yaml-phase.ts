@@ -1,9 +1,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { BasePhase } from '../base';
-import { IPhase, IPhaseOptionParams, IPhaseTask } from '../types';
+import { IPhase, IPhaseOptionParams, IPhaseTask, ITaskGroup } from '../types';
 import { loadYamlFile } from './yaml-handler';
 import { YamlPhaseTask } from './yaml-phase-task';
+import { TaskGroup } from '../task-group';
 
 export class YamlPhase extends BasePhase implements IPhase {
   protected basePath: string;
@@ -65,6 +66,7 @@ export class YamlPhase extends BasePhase implements IPhase {
         ...this.config,
         ...config,
       };
+      this.setGroups(this.config);
       this.loaded = true;
       this.log('loadFromConfigFile: loaded');
     } catch (e) {
@@ -73,6 +75,15 @@ export class YamlPhase extends BasePhase implements IPhase {
       this.log('loadFromConfigFile: loaded');
       return;
     }
+  }
+
+  setGroups(config: any) {
+    const groups = config['groups'];
+    if (!groups) return;
+    if (!Array.isArray(groups)) {
+      throw new Error('Invalid groups entry');
+    }
+    this.groups = groups;
   }
 
   getPhases() {
@@ -124,8 +135,20 @@ export class YamlPhase extends BasePhase implements IPhase {
     this.listHandler = this.createListHandler(taskConfigs);
     taskConfigs = this.listHandler.prepare(taskConfigs);
     this.iterate(taskConfigs);
+    this.iterateGroups();
     this.log('loadTasks: loaded');
     this.tasksLoaded = true;
+  }
+
+  iterateGroups() {
+    for (const group of this.groups) {
+      const taskGroup = new TaskGroup();
+      for (const config of group) {
+        const task = this.createTask(config);
+        taskGroup.addTask(task);
+      }
+      this.taskGroups.push(taskGroup);
+    }
   }
 
   iterate(taskConfigs: any[]) {
@@ -142,6 +165,15 @@ export class YamlPhase extends BasePhase implements IPhase {
   addTask(task: IPhaseTask) {
     this.callbacks?.onTaskAdded && this.callbacks?.onTaskAdded(task);
     this.tasks.push(task);
+  }
+
+  override async nextTaskGroup() {
+    await this.loadTasks();
+    this.currentTaskGroup = this.taskGroups.shift();
+    if (!this.currentTaskGroup) {
+      this.setCompleted();
+    }
+    return this.currentTaskGroup;
   }
 
   override async nextTask() {

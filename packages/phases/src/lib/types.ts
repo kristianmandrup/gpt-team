@@ -51,8 +51,20 @@ export interface IPhases {
   setDone(): void;
   loadPhases?: () => Promise<void>;
   nextPhase(): Promise<IPhase | undefined>;
+  nextPhaseGroup(): Promise<IPhaseGroup | undefined>;
   nextTask(): Promise<IPhaseTask | undefined>;
 }
+
+export interface IPhaseGroup {
+  phases: IPhase[];
+  addPhase(phase: IPhase): void;
+}
+
+export interface ITaskGroup {
+  tasks: IPhaseTask[];
+  addTask(task: IPhaseTask): void;
+}
+
 export interface IPhase {
   getName?(): string;
   getGoal?(): string | undefined;
@@ -62,6 +74,7 @@ export interface IPhase {
   isDone(): boolean;
   setDone(): void;
   loadGoal?: () => Promise<void>;
+  nextTaskGroup(): Promise<ITaskGroup | undefined>;
   nextTask(): Promise<IPhaseTask | undefined>;
 }
 export interface IPhaseTasks {
