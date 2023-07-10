@@ -30,12 +30,19 @@ export class YamlPhases extends BasePhases implements IPhases {
   }
 
   async loadPhases() {
-    const config: any = await loadYamlFile(this.phasesPath);
-    if (!config) return;
-    console.log('loadPhases', { config });
-    const { phases } = config;
-    if (!phases) {
-      console.log('Missing phases in config');
+    this.log('loadPhases: loading');
+    let phases: any;
+    const filePath = this.phasesPath;
+    try {
+      const config: any = await loadYamlFile(filePath);
+      if (!config) return;
+      phases = config['phases'];
+      if (!phases) {
+        this.log('Missing phases in config');
+        return;
+      }
+    } catch (e) {
+      this.log(`loadYamlFile: error loading file ${filePath}`);
       return;
     }
     Object.keys(phases).map((key) => {
@@ -44,6 +51,7 @@ export class YamlPhases extends BasePhases implements IPhases {
       const phase = this.createPhase(phaseConfig);
       this.addPhase(phase);
     });
+    this.log('loadPhases: loaded');
   }
 
   addPhase(phase: IPhase) {

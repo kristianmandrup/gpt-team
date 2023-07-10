@@ -7,7 +7,6 @@ export class YamlPhase extends BasePhase implements IPhase {
 
   constructor(config: any, opts: IPhaseOptionParams) {
     super(opts);
-    console.log('YamlPhase', { config });
     this.config = config;
   }
 
@@ -31,20 +30,26 @@ export class YamlPhase extends BasePhase implements IPhase {
     return new YamlPhaseTask(config, { phase: this });
   }
 
-  async loadTasks() {
-    const taskConfigs: any = this.getTasks();
+  validateTaskConfigs(taskConfigs: any) {
     if (!taskConfigs) {
       throw new Error('Missing tasks entry in config');
     }
     if (taskConfigs.length == 0) {
       throw new Error('No tasks in config');
     }
+  }
+
+  async loadTasks() {
+    this.log('loadTasks: loading');
+    const taskConfigs: any = this.getTasks();
+    this.validateTaskConfigs(taskConfigs);
     Object.keys(taskConfigs).map((key: string) => {
       const taskConfig: any = taskConfigs[key] as any;
       taskConfig.name = key;
       const task = this.createTask(taskConfig);
       this.addTask(task);
     });
+    this.log('loadTasks: loaded');
   }
 
   addTask(task: IPhaseTask) {

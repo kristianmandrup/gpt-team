@@ -53,16 +53,29 @@ The `_goal.md` for a tak likewise explains the goal of a task and can also be se
 This phase loader requires a simple `phases.yaml` file which should contains the full phases and task definitions:
 
 ```yml
+order:
+  - analysis
+  - development
+folder: phases
 phases:
   analysis:
+    folder: analysis
     goal: 'analyse project'
+    order:
+      - use-cases
+      - design
     tasks:
+      use-cases:
+        configFile: tasks/use-cases.yml
       design:
         channels:
           subscriptions:
             - ui
         messages:
           - hello world
+  development:
+    folder: development
+    configFile: development.yml
 ```
 
 In the near future we may well allow this file to be split up in one yaml file per phase.

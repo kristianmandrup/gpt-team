@@ -31,25 +31,25 @@ export class FilePhases extends BasePhases implements IPhases {
 
   setOrder(order: any, filePath: string) {
     if (!order) return;
+    this.log('load and set order');
     this.validateArray('order', order, filePath);
     this.handler.ordering = order;
   }
 
   setIgnore(ignore: any, filePath: string) {
     if (!ignore) return;
+    this.log('load and set ignore');
     this.validateArray('ignore', ignore, filePath);
     this.handler.ignore = ignore;
   }
 
   async loadConfig() {
-    console.log('loadConfig');
+    this.log('loadConfig: loading');
     if (this.loadedConfig) return;
-    this.log('loading order');
     const filePath = path.join(this.phasesPath, '_config.yml');
     try {
       const file = fs.readFileSync(filePath, 'utf8');
       const doc: any = yaml.load(file);
-      console.log(doc);
       this.log(`loadConfig: loaded config: ${doc}`);
       this.loadedConfig = true;
       const ignore = doc['ignore'];
@@ -57,7 +57,8 @@ export class FilePhases extends BasePhases implements IPhases {
       const order = doc['order'];
       this.setOrder(order, filePath);
     } catch (e) {
-      console.log(`loadOrder: unable to load phase order from ${filePath}`, e);
+      this.log(`loadOrder: unable to load phase config from ${filePath}`);
+      // console.log(`loadOrder: unable to load phase config from ${filePath}`, e);
     }
   }
 
@@ -65,11 +66,7 @@ export class FilePhases extends BasePhases implements IPhases {
     return new FilePhase(folderPath, { phases: this });
   }
 
-  async loadPhases() {
-    if (this.phases.length > 0) return;
-    this.log('loading phases');
-    await this.loadConfig();
-    const folders = this.handler.foldersFrom(this.phasesPath);
+  validateFolders(folders: any) {
     if (!folders) {
       throw new Error(
         `loadPhases: No phases folders found for ${this.phasesPath}`
@@ -78,6 +75,14 @@ export class FilePhases extends BasePhases implements IPhases {
     if (folders.length == 0) {
       this.log(`loadPhases: No phase folders found for ${this.phasesPath}`);
     }
+  }
+
+  async loadPhases() {
+    if (this.phases.length > 0) return;
+    this.log('loading phases');
+    await this.loadConfig();
+    const folders = this.handler.foldersFrom(this.phasesPath);
+    this.validateFolders(folders);
     for (const folderPath of folders) {
       const phase = this.createPhase(folderPath);
       this.addPhase(phase);
