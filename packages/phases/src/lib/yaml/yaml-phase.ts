@@ -1,13 +1,39 @@
 import { BasePhase } from '../base';
 import { IPhase, IPhaseOptionParams, IPhaseTask } from '../types';
+import { YamlHandler, loadYamlFile } from './yaml-handler';
 import { YamlPhaseTask } from './yaml-phase-task';
 
 export class YamlPhase extends BasePhase implements IPhase {
-  private config: any = {};
+  protected config: any = {};
+  protected location?: string
+  protected handler?: YamlHandler
+  protected configFile?: string
+  protected loaded = false
 
   constructor(config: any, opts: IPhaseOptionParams) {
     super(opts);
+    this.location = opts.meta?.location
     this.config = config;
+    this.configFile = config.configFile
+  }
+
+  async loadFromConfigFile(filePath?: string) {
+    if (this.loaded) return
+    try {
+      filePath= filePath || this.configFile
+      if (!filePath) return
+      const config: any = await loadYamlFile(filePath);
+      if (!config) return;
+      this.config = {
+        ...this.config,
+        ...config
+      }
+      this.loaded = true
+    } catch (e) {
+      this.log(`loadYamlFile: error loading file ${filePath}`);
+      this.loaded = true
+      return;
+    }
   }
 
   getPhases() {
@@ -39,17 +65,26 @@ export class YamlPhase extends BasePhase implements IPhase {
     }
   }
 
+  createHandler(config: any) {
+    return new YamlHandler(config)
+  }
+
   async loadTasks() {
+    await this.loadFromConfigFile()
     this.log('loadTasks: loading');
-    const taskConfigs: any = this.getTasks();
+    let taskConfigs: any = this.getTasks();
     this.validateTaskConfigs(taskConfigs);
-    Object.keys(taskConfigs).map((key: string) => {
-      const taskConfig: any = taskConfigs[key] as any;
-      taskConfig.name = key;
+    this.handler = this.createHandler(taskConfigs)
+    taskConfigs = this.handler.prepare(taskConfigs)
+    this.iterate(taskConfigs)
+    this.log('loadTasks: loaded');
+  }
+
+  iterate(taskConfigs: any[]) {
+    taskConfigs.map((taskConfig: any) => {
       const task = this.createTask(taskConfig);
       this.addTask(task);
     });
-    this.log('loadTasks: loaded');
   }
 
   addTask(task: IPhaseTask) {

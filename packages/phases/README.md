@@ -56,10 +56,10 @@ This phase loader requires a simple `phases.yaml` file which should contains the
 order:
   - analysis
   - development
-folder: phases
+location: phases
 phases:
   analysis:
-    folder: analysis
+    location: analysis
     goal: 'analyse project'
     order:
       - use-cases
@@ -74,11 +74,14 @@ phases:
         messages:
           - hello world
   development:
-    folder: development
     configFile: development.yml
 ```
 
-In the near future we may well allow this file to be split up in one yaml file per phase.
+The yaml file can be split into multiple smaller files using `location`and `configFile` entries as shown in the example above.
+The `location` can be used to indicate a hierarchical folder structure:
+
+- The `configFile` for the `use-cases` task will be loaded from `phases/analysis/tasks/use-cases.yml`.
+- The `configFile` for the `development` phase will be loaded from `phases/development.yml`.
 
 ### Hybrid loaders
 
