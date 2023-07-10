@@ -3,42 +3,62 @@ import { BasePhase } from '../base';
 import { IPhase, IPhaseOptionParams, IPhaseTask } from '../types';
 import { loadYamlFile } from './yaml-handler';
 import { YamlPhaseTask } from './yaml-phase-task';
-import { ListHandler } from '../list-handler';
 
 export class YamlPhase extends BasePhase implements IPhase {
-  protected config: any = {};
-  protected location?: string
-  protected parentLocation?: string
-  protected fullLocation?: string
-  protected configFilePath?: string
-  protected loaded = false
+  protected basePath: string;
+  protected fullBasePath: string;
+  protected location?: string;
+  protected parentLocation?: string;
+  protected fullLocation?: string;
+  protected configFilePath?: string;
+  protected loaded = false;
+  protected tasksLoaded = false;
 
-  constructor(config: any, opts: IPhaseOptionParams) {
+  constructor(config: any, opts: IPhaseOptionParams = {}) {
     super(opts);
-    this.parentLocation = opts.meta?.parentLocation
+    const meta = opts.meta || {};
+    const { basePath, parentLocation } = meta;
+    this.basePath = basePath;
+    this.parentLocation = parentLocation;
     this.config = config;
-    const location = config['location']
-    this.location = location
-    this.fullLocation = this.parentLocation ? path.join(this.parentLocation, location) : location;
-    const configFilePath = config.configFile
-    this.configFilePath = this.fullLocation ? path.join(this.fullLocation, configFilePath) : configFilePath
+    const location = config['location'];
+    this.location = location;
+    const fullLocation = parentLocation
+      ? path.join(parentLocation, location)
+      : location;
+    this.fullLocation = fullLocation;
+    const fullBasePath = fullLocation
+      ? path.join(basePath, fullLocation)
+      : basePath;
+    this.fullBasePath = fullBasePath;
+    this.configFilePath = config['configFile'];
   }
 
   async loadFromConfigFile(filePath?: string) {
-    if (this.loaded) return
+    if (this.loaded) return;
+    this.log('loadFromConfigFile: loading');
     try {
-      filePath= filePath || this.configFilePath
-      if (!filePath) return
+      filePath = filePath || this.configFilePath;
+      if (!filePath) return;
+      const fullFilePath = this.fullBasePath
+        ? path.join(this.fullBasePath, filePath)
+        : filePath;
+      this.log(`loadFromConfigFile: loading from ${fullFilePath}`);
       const config: any = await loadYamlFile(filePath);
-      if (!config) return;
+      if (!config) {
+        this.log('loadFromConfigFile: config file was empty');
+        return;
+      }
       this.config = {
         ...this.config,
-        ...config
-      }
-      this.loaded = true
+        ...config,
+      };
+      this.loaded = true;
+      this.log('loadFromConfigFile: loaded');
     } catch (e) {
       this.log(`loadYamlFile: error loading file ${filePath}`);
-      this.loaded = true
+      this.loaded = true;
+      this.log('loadFromConfigFile: loaded');
       return;
     }
   }
@@ -47,7 +67,7 @@ export class YamlPhase extends BasePhase implements IPhase {
     return this.phases;
   }
 
-  getTasks(): Record<string, any> {
+  getTaskConfigs(): Record<string, any> {
     return this.config.tasks || {};
   }
 
@@ -61,8 +81,9 @@ export class YamlPhase extends BasePhase implements IPhase {
 
   createTask(config: any) {
     const meta = {
-      location: this.location
-    }
+      location: this.fullLocation,
+      basePath: this.basePath,
+    };
     return new YamlPhaseTask(config, { meta, phase: this });
   }
 
@@ -76,17 +97,23 @@ export class YamlPhase extends BasePhase implements IPhase {
   }
 
   async loadTasks() {
-    await this.loadFromConfigFile()
+    if (this.tasksLoaded) return;
+    await this.loadFromConfigFile();
     this.log('loadTasks: loading');
-    let taskConfigs: any = this.getTasks();
+    let taskConfigs: any = this.getTaskConfigs();
     this.validateTaskConfigs(taskConfigs);
-    this.listHandler = this.createListHandler(taskConfigs)
-    taskConfigs = this.listHandler.prepare(taskConfigs)
-    this.iterate(taskConfigs)
+    this.listHandler = this.createListHandler(taskConfigs);
+    taskConfigs = this.listHandler.prepare(taskConfigs);
+    this.iterate(taskConfigs);
     this.log('loadTasks: loaded');
+    this.tasksLoaded = true;
   }
 
   iterate(taskConfigs: any[]) {
+    if (taskConfigs.length == 0) {
+      this.log('iterate: no task configs to iterate and add');
+      return;
+    }
     taskConfigs.map((taskConfig: any) => {
       const task = this.createTask(taskConfig);
       this.addTask(task);

@@ -52,7 +52,7 @@ export class FilePhaseTasks extends FilePhaseHandler implements IPhaseTasks {
   setIgnore(ignore: any, filePath: string) {
     if (!ignore) return;
     this.validateArray('ignore', ignore, filePath);
-    this.ignore = ignore;
+    this.ignored = ignore;
   }
 
   async loadOrder() {

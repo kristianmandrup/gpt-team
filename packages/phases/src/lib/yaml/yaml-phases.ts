@@ -8,8 +8,8 @@ import { ListHandler } from '../list-handler';
 export class YamlPhases extends BasePhases implements IPhases {
   protected basePath: string;
   protected phasesPath: string;
-  protected handler?: ListHandler
-  protected location?: string
+  protected handler?: ListHandler;
+  protected location?: string;
 
   constructor(basePath: string, opts: IPhasesOptionParams = {}) {
     super(opts);
@@ -19,20 +19,21 @@ export class YamlPhases extends BasePhases implements IPhases {
 
   createPhase(config: any) {
     const meta = {
-      location: this.location
-    }
+      basePath: this.basePath,
+      location: this.location,
+    };
     return new YamlPhase(config, { meta, phases: this });
   }
 
   validatePhasesConfigs(phaseConfigs: any) {
     if (!phaseConfigs) {
       this.log('Missing phases in config');
-      throw new Error("Missing phases in config")
+      throw new Error('Missing phases in config');
     }
   }
 
   createHandler(config: any) {
-    return new ListHandler(config)
+    return new ListHandler(config);
   }
 
   async loadPhases() {
@@ -43,16 +44,16 @@ export class YamlPhases extends BasePhases implements IPhases {
       const config: any = await loadYamlFile(filePath);
       if (!config) return;
       phaseConfigs = config['phases'];
-      this.validatePhasesConfigs(phaseConfigs)      
-      this.location = config['location']
-      this.handler = this.createHandler(config)
+      this.validatePhasesConfigs(phaseConfigs);
+      this.location = config['location'];
+      this.handler = this.createHandler(config);
     } catch (e) {
       this.log(`loadYamlFile: error loading file ${filePath}`);
       return;
     }
     // add key as name to each phase, ignore then order list
-    phaseConfigs = this.handler.prepare(phaseConfigs)
-    this.iterate(phaseConfigs)
+    phaseConfigs = this.handler.prepare(phaseConfigs);
+    this.iterate(phaseConfigs);
     this.log('loadPhases: loaded');
   }
 

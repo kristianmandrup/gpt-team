@@ -1,39 +1,51 @@
+import * as path from 'path';
 import { BasePhaseTask } from '../base';
 import { IPhase, IPhaseTask, IPhaseTaskOptionParams } from '../types';
 import { loadYamlFile } from './yaml-handler';
 
 export class YamlPhaseTask extends BasePhaseTask implements IPhaseTask {
-  protected configFile?: string
-  protected loaded = false
+  protected basePath: string;
+  protected parentLocation?: string;
+  protected fullBasePath?: string;
+  protected configFile?: string;
+  protected loaded = false;
 
-
-  constructor(config: any, opts: IPhaseTaskOptionParams) {
+  constructor(config: any, opts: IPhaseTaskOptionParams = {}) {
     super(opts);
+    const meta = opts.meta || {};
+    const { basePath, location } = meta;
+    this.basePath = basePath;
+    this.parentLocation = location;
+    this.fullBasePath = location ? path.join(basePath, location) : basePath;
     this.config = config;
-    this.configFile = config.configFile
+    this.configFile = config.configFile;
   }
 
   async getConfig(): Promise<Record<string, any>> {
-    await this.loadFromConfigFile()
+    await this.loadFromConfigFile();
     return this.config;
   }
 
   async loadFromConfigFile(filePath?: string) {
-    if (this.loaded) return
+    if (this.loaded) return;
     try {
-      filePath= filePath || this.configFile
-      if (!filePath) return
-      const config: any = await loadYamlFile(filePath);
+      filePath = filePath || this.configFile;
+      if (!filePath) return;
+      const fullFilePath = this.fullBasePath
+        ? path.join(this.fullBasePath, filePath)
+        : filePath;
+      this.log(`loadFromConfigFile: loading from ${fullFilePath}`);
+      const config: any = await loadYamlFile(fullFilePath);
       if (!config) return;
       this.config = {
         ...this.config,
-        ...config
-      }
-      this.parseConfig()
-      this.loaded = true
+        ...config,
+      };
+      this.parseConfig();
+      this.loaded = true;
     } catch (e) {
       this.log(`loadYamlFile: error loading file ${filePath}`);
-      this.loaded = true
+      this.loaded = true;
       return;
     }
   }

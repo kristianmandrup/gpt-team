@@ -8,6 +8,7 @@ import {
 } from '../types';
 
 export abstract class BasePhase implements IPhase {
+  protected config: any = {};
   protected phases?: IPhases;
   protected tasks: IPhaseTask[] = [];
   protected currentTask?: IPhaseTask;
@@ -16,7 +17,7 @@ export abstract class BasePhase implements IPhase {
   protected goal = '';
   protected loggingOn = false;
   protected name = 'noname';
-  protected listHandler?: ListHandler
+  protected listHandler?: ListHandler;
 
   constructor({ loggingOn, phases, callbacks }: IPhaseOptionParams) {
     this.callbacks = callbacks;
@@ -25,7 +26,7 @@ export abstract class BasePhase implements IPhase {
   }
 
   createListHandler(config: any) {
-    return new ListHandler(config)
+    return new ListHandler(config);
   }
 
   log(msg: string) {

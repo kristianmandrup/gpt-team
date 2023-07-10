@@ -40,7 +40,7 @@ export class FilePhases extends BasePhases implements IPhases {
     if (!ignore) return;
     this.log('load and set ignore');
     this.validateArray('ignore', ignore, filePath);
-    this.handler.ignore = ignore;
+    this.handler.ignored = ignore;
   }
 
   async loadConfig() {
